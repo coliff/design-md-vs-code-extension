@@ -19,7 +19,7 @@ const cache = new Map();
  * Lint DESIGN.md content and locate each finding in the text.
  * Results are cached by content so providers can share one lint run.
  * @param {string} text
- * @returns {{ report: import("@google/design.md/linter").LintReport | null, problems: Problem[] }}
+ * @returns {{ report: import("@google/design.md/linter").LintReport | undefined, problems: Problem[] }}
  */
 function analyze(text) {
   const cached = cache.get(text);
@@ -46,7 +46,7 @@ function runLint(text) {
     return { report, problems };
   } catch (error) {
     return {
-      report: null,
+      report: undefined,
       problems: [
         {
           start: 0,
@@ -63,21 +63,20 @@ function runLint(text) {
 /**
  * Reorder the markdown sections into the spec's canonical order.
  * @param {string} text
- * @returns {string | null} The fixed content, or null if nothing can be fixed.
+ * @returns {string | undefined} The fixed content, or undefined if nothing can be fixed.
  */
 function fixSectionOrderText(text) {
   const { report } = analyze(text);
   if (!report) {
-    return null;
+    return undefined;
   }
   const result = fixSectionOrder({
     content: text,
     sections: report.documentSections,
   });
-  if (!result.success || result.fixedContent === text) {
-    return null;
-  }
-  return result.fixedContent;
+  return !result.success || result.fixedContent === text
+    ? undefined
+    : result.fixedContent;
 }
 
 /**

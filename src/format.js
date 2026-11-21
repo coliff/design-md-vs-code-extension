@@ -56,19 +56,21 @@ function parseHex(hex) {
   };
 }
 
+function hexChannel(channel) {
+  return Math.round(channel * 255)
+    .toString(16)
+    .padStart(2, "0")
+    .toUpperCase();
+}
+
 /**
  * Format 0..1 channels as #RRGGBB, or #RRGGBBAA when translucent.
  * @param {{ red: number, green: number, blue: number, alpha: number }} color
  * @returns {string}
  */
 function toHex(color) {
-  const part = (channel) =>
-    Math.round(channel * 255)
-      .toString(16)
-      .padStart(2, "0")
-      .toUpperCase();
-  const alpha = color.alpha < 1 ? part(color.alpha) : "";
-  return `#${part(color.red)}${part(color.green)}${part(color.blue)}${alpha}`;
+  const alpha = color.alpha < 1 ? hexChannel(color.alpha) : "";
+  return `#${hexChannel(color.red)}${hexChannel(color.green)}${hexChannel(color.blue)}${alpha}`;
 }
 
 module.exports = { describeValue, formatDimension, parseHex, toHex };

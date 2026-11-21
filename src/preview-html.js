@@ -23,14 +23,11 @@ function escapeHtml(value) {
 }
 
 function cssDimension(dimension) {
-  if (
-    !dimension ||
-    !Number.isFinite(dimension.value) ||
-    !/^[a-z%]*$/iu.test(dimension.unit)
-  ) {
-    return "";
-  }
-  return formatDimension(dimension);
+  return dimension &&
+    Number.isFinite(dimension.value) &&
+    /^[a-z%]*$/iu.test(dimension.unit)
+    ? formatDimension(dimension)
+    : "";
 }
 
 function cssFontFamily(family) {
@@ -180,7 +177,7 @@ function renderReport(report, rules) {
  * Build the preview webview HTML for a DESIGN.md document.
  * @param {object} options
  * @param {string} options.text Raw document content.
- * @param {import("@google/design.md/linter").LintReport | null} options.report
+ * @param {import("@google/design.md/linter").LintReport | undefined} options.report
  * @param {string} options.css Stylesheet contents.
  * @param {string} options.nonce CSP nonce for the inline stylesheet.
  * @param {string} options.cspSource Webview CSP source.
