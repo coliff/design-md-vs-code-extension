@@ -97,6 +97,20 @@ function fallbackRange(text) {
   return { start: 0, end: firstLineEnd === -1 ? text.length : firstLineEnd };
 }
 
+function locateReference(text, location, message) {
+  const ref = new RegExp(REFERENCE.source, "u").exec(message);
+  if (ref) {
+    const index = text
+      .slice(location.keyStart, location.pairEnd)
+      .indexOf(ref[0]);
+    if (index !== -1) {
+      const start = location.keyStart + index;
+      return { start, end: start + ref[0].length };
+    }
+  }
+  return { start: location.keyStart, end: location.keyEnd };
+}
+
 /**
  * Map a linter finding to a text range.
  * @param {string} text
@@ -104,21 +118,9 @@ function fallbackRange(text) {
  * @returns {{ start: number, end: number }}
  */
 function locateFinding(text, finding) {
-  if (finding.path) {
-    const location = locatePath(text, finding.path);
-    if (location) {
-      const ref = new RegExp(REFERENCE.source, "u").exec(finding.message);
-      if (ref) {
-        const index = text
-          .slice(location.keyStart, location.pairEnd)
-          .indexOf(ref[0]);
-        if (index !== -1) {
-          const start = location.keyStart + index;
-          return { start, end: start + ref[0].length };
-        }
-      }
-      return { start: location.keyStart, end: location.keyEnd };
-    }
+  const location = finding.path && locatePath(text, finding.path);
+  if (location) {
+    return locateReference(text, location, finding.message);
   }
   const section = SECTION_NAME.exec(finding.message);
   if (section) {
