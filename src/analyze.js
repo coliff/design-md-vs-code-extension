@@ -38,6 +38,14 @@ function analyze(text) {
   return result;
 }
 
+function isReportedFinding(finding, hasDuplicates) {
+  // The linter's token count is a summary, not something to fix.
+  if (finding.rule === "token-summary") {
+    return false;
+  }
+  return !(hasDuplicates && isUpstreamDuplicateKey(finding));
+}
+
 function runLint(text) {
   const extra = checkFrontMatter(text);
   const hasDuplicates = extra.some(
@@ -46,7 +54,7 @@ function runLint(text) {
   try {
     const report = lint(text);
     const problems = report.findings
-      .filter((finding) => !(hasDuplicates && isUpstreamDuplicateKey(finding)))
+      .filter((finding) => isReportedFinding(finding, hasDuplicates))
       .map((finding) => ({
         ...locateFinding(text, finding),
         severity: finding.severity,

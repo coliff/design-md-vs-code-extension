@@ -25,6 +25,10 @@ describe("analyze", () => {
       problems.filter((problem) => problem.severity !== "info"),
       [],
     );
+    assert.equal(
+      problems.some((problem) => problem.rule === "token-summary"),
+      false,
+    );
   });
 
   it("locates a broken reference on the reference itself", () => {

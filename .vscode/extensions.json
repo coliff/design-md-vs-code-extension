@@ -5,7 +5,12 @@
     "esbenp.prettier-vscode"
   ],
   "unwantedRecommendations": [
+    "christian-kohler.npm-intellisense",
+    "firefox-devtools.vscode-firefox-debug",
+    "eamodio.gitlens",
+    "GitHub.vscode-github-actions",
+    "GitHub.vscode-pull-request-github",
+    "ms-azuretools.vscode-docker",
     "ms-edgedevtools.vscode-edge-devtools",
-    "GitHub.vscode-github-actions"
   ]
 }

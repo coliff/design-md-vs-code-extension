@@ -18,15 +18,15 @@ test/**
 **/*.jpg
 **/*.lock
 **/*.log
-**/*.map
+**/*.markdownlint.json
+**/*.markdownlintignore
 **/*.pid
 **/*.tmp
 **/*.vsix
 **/*.yml
 **/*.zip
 **/AGENTS.md
-**/eslint.config.js
-**/jsconfig.json
+**/eslint.config.mjs
 **/stylelint.config.mjs
 
 THUMBS.db
