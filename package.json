@@ -1,7 +1,7 @@
 {
   "name": "design-md-vs-code-extension",
   "displayName": "%displayName%",
-  "version": "1.0.4",
+  "version": "1.0.0",
   "private": true,
   "description": "%description%",
   "categories": [
@@ -25,7 +25,7 @@
   },
   "main": "./out/extension.js",
   "scripts": {
-    "compile": "esbuild src/extension.js --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --target=node22 --sourcemap --loader:.css=text --loader:.md=text",
+    "compile": "node esbuild.config.mjs",
     "lint": "npm run prettier && npm run lint-js",
     "lint:fix": "npm run prettier && npm run lint-js:fix",
     "lint-js": "eslint .",
@@ -34,8 +34,8 @@
     "prettier": "prettier --write \"**/*.{css,js,json,md,mjs,yml}\"",
     "spellcheck": "npx cspell \"**/*.{html,js,json,md,yml}\"",
     "test": "npm run compile && node --check out/extension.js && node --require ./test/css-register.js --test \"test/**/*.test.js\"",
-    "vscode:prepublish": "npm run compile -- --minify",
-    "watch": "esbuild src/extension.js --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --target=node22 --sourcemap --loader:.css=text --loader:.md=text --watch"
+    "vscode:prepublish": "node esbuild.config.mjs --minify",
+    "watch": "node esbuild.config.mjs --watch"
   },
   "contributes": {
     "commands": [
