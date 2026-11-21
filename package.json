@@ -3,6 +3,10 @@
   "displayName": "%displayName%",
   "version": "1.0.0",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coliff/design-md-vs-code-extension.git"
+  },
   "description": "%description%",
   "categories": [
     "Linters",
@@ -83,6 +87,10 @@
         }
       }
     },
+    "markdown.markdownItPlugins": true,
+    "markdown.previewStyles": [
+      "./media/markdown-preview.css"
+    ],
     "menus": {
       "commandPalette": [
         {
