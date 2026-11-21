@@ -118,7 +118,6 @@ components:
   button-ghost:
     backgroundColor: rgba(255, 255, 255, 0.05)
     textColor: "{colors.primary}"
-    textColor: "{colors.primary}"
     typography: "{typography.label-sm}"
     rounded: "{rounded.xl}"
   input-field:
