@@ -1,0 +1,80 @@
+{
+  "DESIGN.md front matter": {
+    "prefix": "design-frontmatter",
+    "description": "DESIGN.md YAML front matter with core token groups",
+    "body": [
+      "---",
+      "version: alpha",
+      "name: ${1:My Design System}",
+      "description: ${2:A short summary of the visual identity.}",
+      "colors:",
+      "  primary: \"${3:#1A73E8}\"",
+      "typography:",
+      "  body:",
+      "    fontFamily: ${4:Inter}",
+      "    fontSize: ${5:16px}",
+      "    fontWeight: ${6:400}",
+      "rounded:",
+      "  md: ${7:8px}",
+      "spacing:",
+      "  md: ${8:16px}",
+      "components:",
+      "  button:",
+      "    backgroundColor: \"{colors.primary}\"",
+      "    rounded: \"{rounded.md}\"",
+      "---",
+      "$0"
+    ]
+  },
+  "DESIGN.md color token": {
+    "prefix": "design-color",
+    "description": "Color token",
+    "body": ["${1:name}: \"${2:#000000}\""]
+  },
+  "DESIGN.md typography token": {
+    "prefix": "design-typography",
+    "description": "Typography token",
+    "body": [
+      "${1:name}:",
+      "  fontFamily: ${2:Inter}",
+      "  fontSize: ${3:16px}",
+      "  fontWeight: ${4:400}",
+      "  lineHeight: ${5:24px}"
+    ]
+  },
+  "DESIGN.md component": {
+    "prefix": "design-component",
+    "description": "Component token block",
+    "body": [
+      "${1:name}:",
+      "  backgroundColor: \"{colors.${2:primary}}\"",
+      "  textColor: \"{colors.${3:on-primary}}\"",
+      "  rounded: \"{rounded.${4:md}}\"",
+      "  padding: \"{spacing.${5:md}}\""
+    ]
+  },
+  "DESIGN.md sections": {
+    "prefix": "design-sections",
+    "description": "All standard DESIGN.md sections in spec order",
+    "body": [
+      "## Overview",
+      "",
+      "$1",
+      "",
+      "## Colors",
+      "",
+      "## Typography",
+      "",
+      "## Layout",
+      "",
+      "## Elevation & Depth",
+      "",
+      "## Shapes",
+      "",
+      "## Components",
+      "",
+      "## Do's and Don'ts",
+      ""
+    ]
+  }
+}

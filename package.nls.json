@@ -1,0 +1,11 @@
+{
+  "displayName": "DESIGN.md",
+  "description": "Write, validate and preview DESIGN.md design system files",
+  "command.openPreview": "Open Preview",
+  "command.openPreviewToSide": "Open Preview to the Side",
+  "command.validate": "Validate",
+  "command.new": "New DESIGN.md File",
+  "command.fixSectionOrder": "Fix Section Order",
+  "config.validate.enable": "Validate DESIGN.md files with the official @google/design.md linter.",
+  "config.validate.debounceMs": "Delay in milliseconds before re-validating after an edit."
+}

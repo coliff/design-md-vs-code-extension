@@ -1,0 +1,165 @@
+{
+  "name": "design-md-vs-code-extension",
+  "displayName": "%displayName%",
+  "version": "1.0.4",
+  "private": true,
+  "description": "%description%",
+  "categories": [
+    "Linters",
+    "Programming Languages",
+    "Snippets",
+    "Visualization"
+  ],
+  "keywords": [
+    "design.md",
+    "design system",
+    "design tokens",
+    "markdown"
+  ],
+  "homepage": "https://christianoliff.com/",
+  "license": "MIT",
+  "author": "C.Oliff",
+  "publisher": "coliff",
+  "sponsor": {
+    "url": "https://github.com/sponsors/coliff"
+  },
+  "main": "./out/extension.js",
+  "scripts": {
+    "compile": "esbuild src/extension.js --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --target=node22 --sourcemap --loader:.css=text --loader:.md=text",
+    "lint": "npm run prettier && npm run lint-js",
+    "lint:fix": "npm run prettier && npm run lint-js:fix",
+    "lint-js": "eslint .",
+    "lint-js:fix": "eslint . --fix",
+    "package": "npm run vscode:prepublish && vsce package",
+    "prettier": "prettier --write \"**/*.{css,js,json,md,mjs,yml}\"",
+    "spellcheck": "npx cspell \"**/*.{html,js,json,md,yml}\"",
+    "test": "npm run compile && node --check out/extension.js && node --require ./test/css-register.js --test \"test/**/*.test.js\"",
+    "vscode:prepublish": "npm run compile -- --minify",
+    "watch": "esbuild src/extension.js --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --target=node22 --sourcemap --loader:.css=text --loader:.md=text --watch"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "designMd.openPreview",
+        "title": "%command.openPreview%",
+        "category": "DESIGN.md",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "designMd.openPreviewToSide",
+        "title": "%command.openPreviewToSide%",
+        "category": "DESIGN.md",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "designMd.validate",
+        "title": "%command.validate%",
+        "category": "DESIGN.md"
+      },
+      {
+        "command": "designMd.new",
+        "title": "%command.new%",
+        "category": "DESIGN.md"
+      },
+      {
+        "command": "designMd.fixSectionOrder",
+        "title": "%command.fixSectionOrder%",
+        "category": "DESIGN.md"
+      }
+    ],
+    "configuration": {
+      "title": "DESIGN.md",
+      "properties": {
+        "designMd.validate.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.validate.enable%"
+        },
+        "designMd.validate.debounceMs": {
+          "type": "number",
+          "default": 300,
+          "minimum": 0,
+          "description": "%config.validate.debounceMs%"
+        }
+      }
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "designMd.openPreview",
+          "when": "resourceFilename == DESIGN.md"
+        },
+        {
+          "command": "designMd.openPreviewToSide",
+          "when": "resourceFilename == DESIGN.md"
+        },
+        {
+          "command": "designMd.validate",
+          "when": "resourceFilename == DESIGN.md"
+        },
+        {
+          "command": "designMd.fixSectionOrder",
+          "when": "resourceFilename == DESIGN.md"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "designMd.openPreviewToSide",
+          "when": "resourceFilename == DESIGN.md",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "designMd.openPreview",
+          "when": "resourceFilename == DESIGN.md",
+          "group": "navigation"
+        }
+      ]
+    },
+    "snippets": [
+      {
+        "language": "markdown",
+        "path": "./snippets/design-md.code-snippets"
+      }
+    ]
+  },
+  "activationEvents": [
+    "workspaceContains:**/DESIGN.md",
+    "onLanguage:markdown"
+  ],
+  "dependencies": {
+    "@google/design.md": "0.4.0",
+    "markdown-it": "15.0.3",
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/vscode": "1.125.0",
+    "@vscode/vsce": "4.1.1",
+    "esbuild": "0.28.2",
+    "eslint": "10.15.0",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.14.0",
+    "prettier": "3.10.1"
+  },
+  "overrides": {
+    "minimatch": "11.0.9",
+    "zod": "4.6.7"
+  },
+  "engines": {
+    "vscode": "^1.128.0"
+  },
+  "volta": {
+    "node": "24.22.3"
+  },
+  "icon": "media/icon.png",
+  "l10n": "./l10n",
+  "extensionKind": [
+    "workspace"
+  ],
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "@vscode/vsce-sign@2.1.1": true
+  }
+}

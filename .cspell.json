@@ -1,0 +1,20 @@
+{
+  "version": "0.2",
+  "words": [
+    "coliff",
+    "Grotesk",
+    "linkify",
+    "Oliff",
+    "rgba",
+    "RRGGBB",
+    "RRGGBBAA",
+    "WCAG",
+    "ZIZMOR"
+  ],
+  "allowCompoundWords": true,
+  "language": "en,en-US",
+  "ignorePaths": [
+    ".cspell.json"
+  ],
+  "useGitignore": true
+}

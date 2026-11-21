@@ -1,0 +1,8 @@
+{
+  "DESIGN.md already exists.": "DESIGN.md already exists.",
+  "Open a DESIGN.md file first.": "Open a DESIGN.md file first.",
+  "Preview {0}": "Preview {0}",
+  "Reorder sections to match the DESIGN.md spec": "Reorder sections to match the DESIGN.md spec",
+  "Sections are already in order.": "Sections are already in order.",
+  "Unresolved reference `{0}`": "Unresolved reference `{0}`"
+}
