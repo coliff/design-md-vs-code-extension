@@ -15,7 +15,7 @@ const broken = fs.readFileSync(
   path.join(__dirname, "fixtures", "broken.md"),
   "utf8",
 );
-const samplesDir = path.join(__dirname, "..", "examples");
+const samplesDirectory = path.join(__dirname, "..", "examples");
 
 describe("analyze", () => {
   it("reports no errors or warnings for the starter template", () => {
@@ -56,9 +56,9 @@ describe("analyze", () => {
   });
 
   it("lints every sample DESIGN.md without errors", () => {
-    for (const sample of fs.readdirSync(samplesDir)) {
+    for (const sample of fs.readdirSync(samplesDirectory)) {
       const text = fs.readFileSync(
-        path.join(samplesDir, sample, "DESIGN.md"),
+        path.join(samplesDirectory, sample, "DESIGN.md"),
         "utf8",
       );
       const { report, problems } = analyze(text);
@@ -79,8 +79,8 @@ describe("fixSectionOrderText", () => {
     assert.ok(fixed.indexOf("## Colors") < fixed.indexOf("## Typography"));
   });
 
-  it("returns null when sections are already in order", () => {
-    assert.equal(fixSectionOrderText(template), null);
+  it("returns undefined when sections are already in order", () => {
+    assert.equal(fixSectionOrderText(template), undefined);
   });
 });
 

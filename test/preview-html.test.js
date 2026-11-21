@@ -43,7 +43,7 @@ describe("buildPreviewHtml", () => {
       cspSource: "",
       css: "",
       nonce: "n",
-      report: null,
+      report: undefined,
       text: "# Hi",
     });
     assert.match(html, /Unable to parse/u);

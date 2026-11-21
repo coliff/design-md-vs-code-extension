@@ -67,7 +67,7 @@ class PreviewManager {
    * @param {vscode.TextDocument} document
    * @param {vscode.WebviewPanel} panel
    */
-  // eslint-disable-next-line class-methods-use-this
+  // eslint-disable-next-line class-methods-use-this -- Kept as a method so scheduleRefresh() can call this.render().
   render(document, panel) {
     const text = document.getText();
     const { report } = analyze(text);

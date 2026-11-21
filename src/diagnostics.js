@@ -85,13 +85,17 @@ function registerDiagnostics(context) {
     ),
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration("designMd.validate")) {
-        vscode.workspace.textDocuments.forEach(validate);
+        for (const document of vscode.workspace.textDocuments) {
+          validate(document);
+        }
       }
     }),
     { dispose: () => timers.forEach((timer) => clearTimeout(timer)) },
   );
 
-  vscode.workspace.textDocuments.forEach(validate);
+  for (const document of vscode.workspace.textDocuments) {
+    validate(document);
+  }
 
   return { validate };
 }

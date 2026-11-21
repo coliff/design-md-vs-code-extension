@@ -10,12 +10,12 @@ const SECTION_NAME = /Section '(?<name>[^']+)'/u;
 /**
  * Locate the YAML front matter block.
  * @param {string} text
- * @returns {{ start: number, end: number, body: string, bodyStart: number } | null}
+ * @returns {{ start: number, end: number, body: string, bodyStart: number } | undefined}
  */
 function getFrontMatter(text) {
   const match = FRONT_MATTER.exec(text);
   if (!match || match.index !== 0) {
-    return null;
+    return undefined;
   }
   const bodyStart = match[0].indexOf("\n") + 1;
   return {
@@ -29,19 +29,18 @@ function getFrontMatter(text) {
 function parseFrontMatter(text) {
   const frontMatter = getFrontMatter(text);
   if (!frontMatter) {
-    return null;
+    return undefined;
   }
-  const doc = parseDocument(frontMatter.body, { keepSourceTokens: false });
-  return { doc, frontMatter };
+  const document = parseDocument(frontMatter.body, { keepSourceTokens: false });
+  return { document, frontMatter };
 }
 
 function findPair(map, key) {
-  if (!isMap(map)) {
-    return undefined;
-  }
-  return map.items.find(
-    (pair) => isScalar(pair.key) && String(pair.key.value) === key,
-  );
+  return isMap(map)
+    ? map.items.find(
+        (pair) => isScalar(pair.key) && String(pair.key.value) === key,
+      )
+    : undefined;
 }
 
 /**
@@ -49,22 +48,24 @@ function findPair(map, key) {
  * Returns offsets for the key and for the whole pair (key through value).
  * @param {string} text
  * @param {string} path
- * @returns {{ keyStart: number, keyEnd: number, pairEnd: number } | null}
+ * @returns {{ keyStart: number, keyEnd: number, pairEnd: number } | undefined}
  */
 function locatePath(text, path) {
   const parsed = parseFrontMatter(text);
   if (!parsed) {
-    return null;
+    return undefined;
   }
-  const { doc, frontMatter } = parsed;
-  let node = doc.contents;
-  let pair = null;
-  for (const segment of path.split(".")) {
-    pair = findPair(node, segment);
+  const { document, frontMatter } = parsed;
+  const [first, ...rest] = path.split(".");
+  let pair = findPair(document.contents, first);
+  for (const segment of rest) {
     if (!pair) {
-      return null;
+      return undefined;
     }
-    node = pair.value;
+    pair = findPair(pair.value, segment);
+  }
+  if (!pair) {
+    return undefined;
   }
   const [keyStart, keyEnd] = pair.key.range;
   const pairEnd = pair.value?.range ? pair.value.range[1] : keyEnd;
@@ -83,7 +84,7 @@ function locateHeading(text, name) {
   );
   const match = heading.exec(text);
   if (!match) {
-    return null;
+    return undefined;
   }
   const start = match.index + match[0].indexOf(match.groups.title);
   return { start, end: start + name.length };
@@ -107,14 +108,15 @@ function locateFinding(text, finding) {
   if (finding.path) {
     const location = locatePath(text, finding.path);
     if (location) {
-      const ref = new RegExp(REFERENCE.source, "u").exec(finding.message);
-      if (ref) {
+      // With the global flag, match() returns whole-match strings only.
+      const [reference] = finding.message.match(REFERENCE) ?? [];
+      if (reference) {
         const index = text
           .slice(location.keyStart, location.pairEnd)
-          .indexOf(ref[0]);
+          .indexOf(reference);
         if (index !== -1) {
           const start = location.keyStart + index;
-          return { start, end: start + ref[0].length };
+          return { start, end: start + reference.length };
         }
       }
       return { start: location.keyStart, end: location.keyEnd };
@@ -134,7 +136,7 @@ function locateFinding(text, finding) {
  * Find the `{section.token}` reference that contains the given offset.
  * @param {string} text
  * @param {number} offset
- * @returns {{ path: string, start: number, end: number } | null}
+ * @returns {{ path: string, start: number, end: number } | undefined}
  */
 function referenceAt(text, offset) {
   const lineStart = text.lastIndexOf("\n", offset - 1) + 1;
@@ -148,7 +150,7 @@ function referenceAt(text, offset) {
       return { path: match.groups.path, start, end };
     }
   }
-  return null;
+  return undefined;
 }
 
 /**
@@ -161,8 +163,8 @@ function findColorValues(text) {
   if (!parsed) {
     return [];
   }
-  const { doc, frontMatter } = parsed;
-  const colors = findPair(doc.contents, "colors");
+  const { document, frontMatter } = parsed;
+  const colors = findPair(document.contents, "colors");
   if (!colors || !isMap(colors.value)) {
     return [];
   }

@@ -53,7 +53,7 @@ async function fixSectionOrderCommand(uri) {
     return;
   }
   const fixed = fixSectionOrderText(document.getText());
-  if (fixed === null) {
+  if (fixed === undefined) {
     vscode.window.showInformationMessage(
       vscode.l10n.t("Sections are already in order."),
     );
@@ -93,10 +93,12 @@ function registerCommands(context, { diagnostics, preview }) {
     ),
     vscode.commands.registerCommand("designMd.validate", async (uri) => {
       const document = await resolveDocument(uri);
-      if (document) {
-        diagnostics.validate(document);
-        await vscode.commands.executeCommand("workbench.actions.view.problems");
+      if (!document) {
+        return;
       }
+
+      diagnostics.validate(document);
+      await vscode.commands.executeCommand("workbench.actions.view.problems");
     }),
     vscode.commands.registerCommand("designMd.new", createDesignFile),
     vscode.commands.registerCommand(

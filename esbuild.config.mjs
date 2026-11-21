@@ -6,8 +6,8 @@ const minify = process.argv.includes("--minify");
 /** @type {import("esbuild").BuildOptions} */
 const options = {
   banner: {
-    // @google/design.md calls createRequire(import.meta.url); esbuild's CJS
-    // polyfill leaves import.meta as {}, so url is undefined without this.
+    // @google/design.md calls createRequire(import.meta.url), but esbuild's
+    // CJS polyfill leaves import.meta as {}, so url is undefined without this.
     js: 'var __import_meta_url=require("url").pathToFileURL(__filename).href;',
   },
   bundle: true,
@@ -29,8 +29,8 @@ const options = {
 };
 
 if (watch) {
-  const ctx = await esbuild.context(options);
-  await ctx.watch();
+  const context = await esbuild.context(options);
+  await context.watch();
 } else {
   await esbuild.build(options);
 }
