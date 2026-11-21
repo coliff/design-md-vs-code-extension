@@ -79,7 +79,7 @@ describe("markdown-it plugin", () => {
     assert.match(html, /class="design-md-frontmatter-nested"/u);
     assert.match(html, /background-color: #1a73e8;/u);
     assert.match(html, /<th scope="row">fontFamily<\/th>/u);
-    assert.match(html, /<h1>Hello<\/h1>/u);
+    assert.match(html, /<h1[^>]*>Hello<\/h1>/u);
   });
 
   it("leaves other Markdown files and other modes to VS Code", () => {

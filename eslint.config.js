@@ -16,16 +16,16 @@ module.exports = [
     },
   },
   {
-    files: ["**/*.js"],
+    // Shared by CommonJS sources and the ESM build script.
+    files: ["**/*.js", "**/*.mjs"],
     languageOptions: {
       ecmaVersion: "latest",
       globals: globals.node,
-      sourceType: "commonjs",
     },
     rules: {
       // Keep limits close to current code so growth stays intentional.
-      complexity: ["error", 10],
-      "func-style": "off",
+      complexity: ["error", 8],
+      "func-style": ["error", "declaration", { allowArrowFunctions: true }],
       "id-length": [
         "error",
         {
@@ -40,6 +40,7 @@ module.exports = [
           skipComments: true,
         },
       ],
+      "max-depth": ["error", 3],
       "max-lines-per-function": [
         "error",
         {
@@ -51,9 +52,11 @@ module.exports = [
       "max-nested-callbacks": ["error", 3],
       "max-params": ["error", 3],
       "max-statements": ["error", 20],
-      // Legitimate control-flow / Node patterns in this codebase.
+      // Colour channels, offsets and contrast thresholds read more clearly inline.
       "no-magic-numbers": "off",
+      // Ternaries are idiomatic for the short value selections used here.
       "no-ternary": "off",
+      // `undefined` is returned and passed deliberately for optional values.
       "no-undefined": "off",
       "no-underscore-dangle": [
         "error",
@@ -71,6 +74,7 @@ module.exports = [
           varsIgnorePattern: "^_",
         },
       ],
+      // `functions: false` allows mutually recursive helpers (renderValue/renderTable).
       "no-use-before-define": [
         "error",
         {
@@ -83,11 +87,18 @@ module.exports = [
       "prefer-destructuring": [
         "error",
         {
-          array: false,
+          array: true,
           object: true,
         },
       ],
+      // Keys follow VS Code / DESIGN.md schema order, which is more meaningful than A-Z.
       "sort-keys": "off",
+    },
+  },
+  {
+    files: ["**/*.js"],
+    languageOptions: {
+      sourceType: "commonjs",
     },
   },
   {
@@ -100,8 +111,6 @@ module.exports = [
   {
     files: ["**/*.mjs"],
     languageOptions: {
-      ecmaVersion: "latest",
-      globals: globals.node,
       sourceType: "module",
     },
   },

@@ -15,7 +15,7 @@ const HTML_ESCAPES = {
   ">": "&gt;",
 };
 const RENDERED_TOKEN = "design_md_front_matter";
-const TOKEN_REF = /^\{([a-z0-9_-]+(?:\.[a-z0-9_-]+)*)\}$/iu;
+const TOKEN_REF = /^\{(?<path>[a-z0-9_-]+(?:\.[a-z0-9_-]+)*)\}$/iu;
 
 function escapeHtml(value) {
   return String(value).replaceAll(/["&'<>]/gu, (char) => HTML_ESCAPES[char]);
@@ -59,7 +59,7 @@ function resolveColor(root, value, seen) {
     return "";
   }
   seen.add(value);
-  const next = lookupPath(root, match[1]);
+  const next = lookupPath(root, match.groups.path);
   return typeof next === "string" ? resolveColor(root, next, seen) : "";
 }
 
