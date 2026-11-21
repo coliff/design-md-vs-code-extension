@@ -1,5 +1,9 @@
 "use strict";
 
+const {
+  checkFrontMatter,
+  isUpstreamDuplicateKey,
+} = require("./frontmatter-rules");
 const { fixSectionOrder, lint } = require("./linter.mjs");
 const { locateFinding } = require("./locate");
 
@@ -35,19 +39,26 @@ function analyze(text) {
 }
 
 function runLint(text) {
+  const extra = checkFrontMatter(text);
+  const hasDuplicates = extra.some(
+    (problem) => problem.rule === "duplicate-key",
+  );
   try {
     const report = lint(text);
-    const problems = report.findings.map((finding) => ({
-      ...locateFinding(text, finding),
-      severity: finding.severity,
-      message: finding.message,
-      rule: finding.rule,
-    }));
-    return { report, problems };
+    const problems = report.findings
+      .filter((finding) => !(hasDuplicates && isUpstreamDuplicateKey(finding)))
+      .map((finding) => ({
+        ...locateFinding(text, finding),
+        severity: finding.severity,
+        message: finding.message,
+        rule: finding.rule,
+      }));
+    return { report, problems: [...extra, ...problems] };
   } catch (error) {
     return {
       report: null,
       problems: [
+        ...extra,
         {
           start: 0,
           end: 0,
