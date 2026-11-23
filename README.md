@@ -1,9 +1,10 @@
 # DESIGN.md
 
-[![Super Linter](https://github.com/coliff/design-md-vs-code-extension/actions/workflows/super-linter.yml/badge.svg)](https://github.com/coliff/design-md-vs-code-extension/actions/workflows/super-linter.yml)
-[![Tests](https://github.com/coliff/design-md-vs-code-extension/actions/workflows/test.yml/badge.svg)](https://github.com/coliff/design-md-vs-code-extension/actions/workflows/test.yml)
-[![Check spelling](https://github.com/coliff/design-md-vs-code-extension/actions/workflows/spellcheck.yml/badge.svg)](https://github.com/coliff/design-md-vs-code-extension/actions/workflows/spellcheck.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
+[![VS Code Marketplace version](https://badgen.net/vs-marketplace/v/coliff.design-md-vs-code-extension?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=coliff.design-md-vs-code-extension)
+[![VS Code Marketplace installs](https://badgen.net/vs-marketplace/i/coliff.design-md-vs-code-extension)](https://marketplace.visualstudio.com/items?itemName=coliff.design-md-vs-code-extension)
+[![Open VSX version](https://img.shields.io/open-vsx/v/coliff/design-md-vs-code-extension?label=Open%20VSX)](https://open-vsx.org/extension/coliff/design-md-vs-code-extension)
+[![Open VSX downloads](https://img.shields.io/open-vsx/dt/coliff/design-md-vs-code-extension)](https://open-vsx.org/extension/coliff/design-md-vs-code-extension)
+
 
 Write, validate and preview [DESIGN.md](https://github.com/google-labs-code/design.md) files in VS Code.
 
