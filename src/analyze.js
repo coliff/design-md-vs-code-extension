@@ -4,8 +4,22 @@ const {
   checkFrontMatter,
   isUpstreamDuplicateKey,
 } = require("./frontmatter-rules");
-const { fixSectionOrder, lint } = require("./linter.mjs");
 const { locateFinding } = require("./locate");
+
+let linter = null;
+
+/**
+ * Load the upstream linter on first use. It reads its spec config from disk
+ * when it loads, so loading it at activation would stop the extension from
+ * registering its commands if that file is missing.
+ * @returns {typeof import("./linter.mjs")}
+ */
+function getLinter() {
+  if (linter === null) {
+    linter = require("./linter.mjs");
+  }
+  return linter;
+}
 
 const CACHE_SIZE = 8;
 const cache = new Map();
@@ -70,7 +84,7 @@ function summarize(problems) {
 
 function lintText(text) {
   try {
-    return { report: lint(text) };
+    return { report: getLinter().lint(text) };
   } catch (error) {
     return {
       error: {
@@ -117,7 +131,7 @@ function fixSectionOrderText(text) {
   if (!report) {
     return null;
   }
-  const result = fixSectionOrder({
+  const result = getLinter().fixSectionOrder({
     content: text,
     sections: report.documentSections,
   });
