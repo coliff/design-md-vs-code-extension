@@ -14,7 +14,7 @@ const HTML_ESCAPES = {
   "<": "&lt;",
   ">": "&gt;",
 };
-const RENDERED_TOKEN = "design_md_front_matter";
+const PLUGIN_NAME = "design_md_front_matter";
 const TOKEN_REF = /^\{(?<path>[a-z0-9_-]+(?:\.[a-z0-9_-]+)*)\}$/iu;
 
 function escapeHtml(value) {
@@ -165,29 +165,36 @@ function renderFrontMatter(source, token) {
 
 /**
  * Create a markdown-it plugin for VS Code's built-in Markdown preview.
- * VS Code applies its own front matter renderer after extension plugins, so
- * DESIGN.md front matter tokens are retagged and rendered here instead.
+ * VS Code installs its own front matter renderer after extension plugins, and
+ * it tokenizes documents without `env.currentDocument`, so the document is
+ * only known at render time. The front matter renderer is therefore wrapped
+ * lazily (once VS Code's renderer exists) and DESIGN.md is detected from the
+ * render environment; other documents and modes fall through to VS Code.
  * @param {(uri: unknown) => string} getFrontMatterMode Returns the
  * `markdown.preview.frontMatter` setting for a document.
  * @returns {(md: import("markdown-it")) => import("markdown-it")}
  */
 function createMarkdownItPlugin(getFrontMatterMode) {
   return (md) => {
-    md.core.ruler.push("design_md_front_matter", (state) => {
-      const uri = state.env?.currentDocument;
-      if (!isDesignMd(uri) || getFrontMatterMode(uri) !== "table") {
-        return;
-      }
-      for (const token of state.tokens) {
-        if (token.type === FRONT_MATTER_TOKEN) {
-          token.type = RENDERED_TOKEN;
-        }
-      }
-    });
-    md.renderer.rules[RENDERED_TOKEN] = (tokens, index) => {
+    let fallback = null;
+    const render = (...args) => {
+      const [tokens, index, , env] = args;
       const token = tokens[index];
-      return renderFrontMatter(token.meta?.content ?? token.content, token);
+      const uri = env?.currentDocument;
+      if (isDesignMd(uri) && getFrontMatterMode(uri) === "table") {
+        return renderFrontMatter(token.meta?.content ?? token.content, token);
+      }
+      return fallback ? fallback(...args) : "";
     };
+    const install = () => {
+      const current = md.renderer.rules[FRONT_MATTER_TOKEN];
+      if (current !== render) {
+        fallback = current;
+        md.renderer.rules[FRONT_MATTER_TOKEN] = render;
+      }
+    };
+    md.core.ruler.push(PLUGIN_NAME, install);
+    install();
     return md;
   };
 }
