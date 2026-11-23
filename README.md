@@ -42,15 +42,3 @@ The extension activates for any markdown file named `DESIGN.md`.
 | `designMd.validate.enable`        | `true`  | Validate DESIGN.md files                 |
 | `designMd.validate.contrastRatio` | `true`  | Warn about low-contrast component colors |
 | `designMd.validate.debounceMs`    | `300`   | Delay before re-validating after an edit |
-
-## Development
-
-```sh
-npm install
-npm run compile   # or: npm run watch
-npm test
-npm run lint
-npm run package   # builds a .vsix
-```
-
-Press <kbd>F5</kbd> to launch an Extension Development Host.
