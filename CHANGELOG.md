@@ -2,6 +2,7 @@
 
 ## 1.0.3 - 2026-11-23
 
+- **Fixed** low text contrast on the pass, warning and fail badges in the DESIGN.md preview. They now meet WCAG AA (4.5:1) in light and dark themes.
 - **Fixed** color swatches and nested tables not appearing in VS Code's built-in Markdown preview (Ctrl+Shift+V) for DESIGN.md files.
 - **Localization** in French, German, Italian, Japanese and Spanish for commands, settings, diagnostics, quick fixes, notifications and the preview. The extension follows VS Code's display language.
 

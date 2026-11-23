@@ -67,18 +67,23 @@ code {
   padding: 0 6px;
 }
 
+/*
+ * Fixed fills rather than theme colors: theme icon colors are often light in
+ * dark themes, which made white text unreadable. Each fill gives white text at
+ * least 4.5:1 (WCAG AA): pass 5.08, warn 4.87, fail 5.36.
+ */
 .badge.pass {
-  background: var(--vscode-testing-iconPassed, #388a34);
+  background: #1a7f37;
   color: #fff;
 }
 
 .badge.warn {
-  background: var(--vscode-editorWarning-foreground, #bf8803);
-  color: #000;
+  background: #9a6700;
+  color: #fff;
 }
 
 .badge.fail {
-  background: var(--vscode-errorForeground, #e51400);
+  background: #cf222e;
   color: #fff;
 }
 
