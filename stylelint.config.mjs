@@ -3,7 +3,6 @@ export default {
   ignoreFiles: ["**/*.min.*", "**/node_modules/**"],
   rules: {
     "annotation-no-unknown": true,
-    "at-charset-rule-no-invalid": true,
     "at-rule-descriptor-no-unknown": true,
     "at-rule-descriptor-value-no-unknown": true,
     "at-rule-no-deprecated": true,
@@ -59,7 +58,6 @@ export default {
       true,
       { ignore: ["at-rule-preludes", "declaration-values"] },
     ],
-    "syntax-string-no-invalid": true,
-    "value-no-invalid": true,
+    "syntax-string-no-invalid": true
   },
 };
