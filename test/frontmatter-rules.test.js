@@ -6,6 +6,7 @@ const { analyze } = require("../src/analyze");
 const {
   checkFrontMatter,
   isUpstreamDuplicateKey,
+  nameInsertionPoint,
 } = require("../src/frontmatter-rules");
 const template = require("../src/template.md");
 
@@ -180,5 +181,44 @@ describe("analyze with front matter rules", () => {
     const { report, problems } = analyze(text);
     assert.ok(report);
     assert.equal(byRule(problems, "missing-name").length, 1);
+  });
+});
+
+describe("nameInsertionPoint", () => {
+  function insertName(text, value = "Added") {
+    const { eol, offset } = nameInsertionPoint(text);
+    return `${text.slice(0, offset)}name: ${value}${eol}${text.slice(offset)}`;
+  }
+
+  it("points at the line after the opening delimiter", () => {
+    const text = doc("---", "colors:", '  primary: "#000000"', "---");
+    assert.deepEqual(nameInsertionPoint(text), { eol: "\n", offset: 4 });
+  });
+
+  it("matches CRLF line endings", () => {
+    const text = doc("---", "description: d", "---").replaceAll("\n", "\r\n");
+    assert.deepEqual(nameInsertionPoint(text), { eol: "\r\n", offset: 5 });
+  });
+
+  it("returns null when there is no front matter", () => {
+    assert.equal(nameInsertionPoint("# Title\n"), null);
+  });
+
+  it("produces front matter that no longer misses a name", () => {
+    for (const text of [
+      doc("---", "colors:", '  primary: "#000000"', "---"),
+      doc("---", "---"),
+      doc("---", "description: d", "---").replaceAll("\n", "\r\n"),
+    ]) {
+      const fixed = insertName(text);
+      assert.match(fixed, /^---\r?\nname: Added\r?\n/u);
+      assert.deepEqual(byRule(checkFrontMatter(fixed), "missing-name"), []);
+    }
+  });
+
+  it("leaves an empty name for the author to fill in", () => {
+    const fixed = insertName(doc("---", "description: d", "---"), "");
+    const [problem] = byRule(checkFrontMatter(fixed), "missing-name");
+    assert.match(problem.message, /non-empty string/u);
   });
 });

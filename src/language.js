@@ -3,6 +3,7 @@
 const vscode = require("vscode");
 const { analyze } = require("./analyze");
 const { describeValue, parseHex, toHex } = require("./format");
+const { nameInsertionPoint } = require("./frontmatter-rules");
 const { findColorValues, isInFrontMatter, referenceAt } = require("./locate");
 
 const SELECTOR = { language: "markdown", pattern: "**/DESIGN.md" };
@@ -95,26 +96,70 @@ const colorProvider = {
   },
 };
 
+function isDesignDiagnostic(diagnostic, code) {
+  return diagnostic.source === "DESIGN.md" && diagnostic.code === code;
+}
+
+function sectionOrderAction(document, diagnostic) {
+  const action = new vscode.CodeAction(
+    vscode.l10n.t("Reorder sections to match the DESIGN.md spec"),
+    vscode.CodeActionKind.QuickFix,
+  );
+  action.diagnostics = [diagnostic];
+  action.isPreferred = true;
+  action.command = {
+    arguments: [document.uri],
+    command: "designMd.fixSectionOrder",
+    title: action.title,
+  };
+  return action;
+}
+
+function addNameAction(document, diagnostic) {
+  const point = nameInsertionPoint(document.getText());
+  if (!point) {
+    return undefined;
+  }
+  const action = new vscode.CodeAction(
+    vscode.l10n.t("Add 'name' to the front matter"),
+    vscode.CodeActionKind.QuickFix,
+  );
+  action.diagnostics = [diagnostic];
+  action.isPreferred = true;
+  action.edit = new vscode.WorkspaceEdit();
+  // A snippet leaves the cursor after `name: ` so the value can be typed.
+  action.edit.set(document.uri, [
+    vscode.SnippetTextEdit.insert(
+      document.positionAt(point.offset),
+      new vscode.SnippetString(`name: $0${point.eol}`),
+    ),
+  ]);
+  return action;
+}
+
+/*
+ * Both a missing and an empty `name` use the `missing-name` rule. Only a
+ * missing one is reported on the opening `---` at the very start.
+ */
+function isMissingName(diagnostic) {
+  const { start } = diagnostic.range;
+  return (
+    isDesignDiagnostic(diagnostic, "missing-name") &&
+    start.line === 0 &&
+    start.character === 0
+  );
+}
+
 const codeActionProvider = {
-  provideCodeActions(document, _range, context) {
-    const diagnostic = context.diagnostics.find(
-      (item) => item.source === "DESIGN.md" && item.code === "section-order",
+  provideCodeActions(document, _range, { diagnostics }) {
+    const sectionOrder = diagnostics.find((item) =>
+      isDesignDiagnostic(item, "section-order"),
     );
-    if (!diagnostic) {
-      return [];
-    }
-    const action = new vscode.CodeAction(
-      vscode.l10n.t("Reorder sections to match the DESIGN.md spec"),
-      vscode.CodeActionKind.QuickFix,
-    );
-    action.diagnostics = [diagnostic];
-    action.isPreferred = true;
-    action.command = {
-      arguments: [document.uri],
-      command: "designMd.fixSectionOrder",
-      title: action.title,
-    };
-    return [action];
+    const missingName = diagnostics.find(isMissingName);
+    return [
+      sectionOrder && sectionOrderAction(document, sectionOrder),
+      missingName && addNameAction(document, missingName),
+    ].filter(Boolean);
   },
 };
 

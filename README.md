@@ -13,7 +13,7 @@ A DESIGN.md file describes a design system: YAML front matter holds the design t
 
 - **Validation** with the official [`@google/design.md`](https://www.npmjs.com/package/@google/design.md) linter. Broken token references, missing primary colors, low contrast, unused tokens and out-of-order sections show up in the Problems panel as you type.
 - **Front matter checks** for a missing or empty `name` and duplicate keys (for example the same token twice under `colors`), each flagged on the exact line.
-- **Quick fix** to reorder sections into the spec's canonical order.
+- **Quick fixes** to add a missing `name` to the front matter and to reorder sections into the spec's canonical order.
 - **Completions** for `{colors.primary}` style token references inside the front matter.
 - **Hovers** that show the resolved value of a token reference.
 - **Color swatches** and a color picker for every hex value under `colors`.

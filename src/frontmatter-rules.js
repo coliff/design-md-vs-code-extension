@@ -135,6 +135,22 @@ function checkFrontMatter(text, { nameDefinedElsewhere = false } = {}) {
 }
 
 /**
+ * Where a quick fix for a missing `name` inserts the key: at the start of the
+ * first line inside the front matter, right after the opening `---`.
+ * @param {string} text
+ * @returns {{ offset: number, eol: string } | null} Null when the document has
+ * no front matter.
+ */
+function nameInsertionPoint(text) {
+  const frontMatter = getFrontMatter(text);
+  if (!frontMatter) {
+    return null;
+  }
+  const eol = text.charAt(frontMatter.bodyStart - 2) === "\r" ? "\r\n" : "\n";
+  return { eol, offset: frontMatter.bodyStart };
+}
+
+/**
  * Whether an upstream finding is the generic duplicate-key YAML warning.
  * @param {{ message: string, rule?: string }} finding
  * @returns {boolean}
@@ -143,4 +159,8 @@ function isUpstreamDuplicateKey(finding) {
   return !finding.rule && UPSTREAM_DUPLICATE_KEY.test(finding.message);
 }
 
-module.exports = { checkFrontMatter, isUpstreamDuplicateKey };
+module.exports = {
+  checkFrontMatter,
+  isUpstreamDuplicateKey,
+  nameInsertionPoint,
+};
