@@ -70,12 +70,13 @@ class PreviewManager {
   // eslint-disable-next-line class-methods-use-this
   render(document, panel) {
     const text = document.getText();
-    const { report } = analyze(text);
+    const { report, summary } = analyze(text);
     panel.webview.html = buildPreviewHtml({
       cspSource: panel.webview.cspSource,
       css,
       nonce: crypto.randomBytes(16).toString("base64"),
       report,
+      summary,
       text,
     });
   }

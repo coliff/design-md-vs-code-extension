@@ -150,8 +150,7 @@ function renderComponents(components) {
   return items.join("");
 }
 
-function renderSummary(report) {
-  const { errors, warnings, infos } = report.summary;
+function renderSummary({ errors, warnings, infos }) {
   return `<p class="summary">
   <span class="badge ${errors > 0 ? "fail" : "pass"}">${errors} errors</span>
   <span class="badge ${warnings > 0 ? "warn" : "pass"}">${warnings} warnings</span>
@@ -159,14 +158,14 @@ function renderSummary(report) {
 </p>`;
 }
 
-function renderReport(report, rules) {
+function renderReport(report, summary, rules) {
   const system = report.designSystem;
   return [
     `<header><h1>${escapeHtml(system.name ?? "DESIGN.md")}</h1>`,
     system.description
       ? `<p class="description">${escapeHtml(system.description)}</p>`
       : "",
-    renderSummary(report),
+    renderSummary(summary),
     "</header>",
     section("Colors", renderColors(system.colors, rules)),
     section("Typography", renderTypography(system.typography, rules)),
@@ -181,18 +180,22 @@ function renderReport(report, rules) {
  * @param {object} options
  * @param {string} options.text Raw document content.
  * @param {import("@google/design.md/linter").LintReport | null} options.report
+ * @param {import("./analyze").Summary} [options.summary] Problem counts shown
+ * in the header. Defaults to the linter's own summary.
  * @param {string} options.css Stylesheet contents.
  * @param {string} options.nonce CSP nonce for the inline stylesheet.
  * @param {string} options.cspSource Webview CSP source.
  * @returns {string}
  */
-function buildPreviewHtml({ text, report, css, nonce, cspSource }) {
+function buildPreviewHtml({ text, report, summary, css, nonce, cspSource }) {
   const rules = [];
   const frontMatter = getFrontMatter(text);
   const prose = markdown.render(
     frontMatter ? text.slice(frontMatter.end) : text,
   );
-  const body = report ? renderReport(report, rules) : PARSE_ERROR_HTML;
+  const body = report
+    ? renderReport(report, summary ?? report.summary, rules)
+    : PARSE_ERROR_HTML;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>

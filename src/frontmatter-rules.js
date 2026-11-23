@@ -1,6 +1,6 @@
 "use strict";
 
-const { isMap, isScalar, parseDocument } = require("yaml");
+const { isMap, isScalar, isSeq, parseDocument } = require("yaml");
 const { getFrontMatter } = require("./locate");
 
 /**
@@ -48,19 +48,30 @@ function childPathOf(path, pair) {
   return path ? `${path}.${name}` : name;
 }
 
+function findDuplicateKeysIn(node, path, context) {
+  if (isMap(node)) {
+    findDuplicateKeys(node, path, context);
+  } else if (isSeq(node)) {
+    node.items.forEach((item, index) =>
+      findDuplicateKeysIn(item, `${path}[${index}]`, context),
+    );
+  }
+}
+
 function findDuplicateKeys(map, path, context) {
   const scope = { ...context, path, seen: new Map() };
   for (const pair of map.items) {
     recordKey(pair, scope);
-    if (isMap(pair.value)) {
-      findDuplicateKeys(pair.value, childPathOf(path, pair), context);
-    }
+    findDuplicateKeysIn(pair.value, childPathOf(path, pair), context);
   }
 }
 
-function checkName(map, frontMatter, problems) {
+function checkName(map, frontMatter, { nameDefinedElsewhere, problems }) {
   const pair = map?.items.find((item) => keyName(item) === "name");
   if (!pair) {
+    if (nameDefinedElsewhere) {
+      return;
+    }
     problems.push({
       start: 0,
       end: 3,
@@ -92,9 +103,12 @@ function checkName(map, frontMatter, problems) {
  * Check the YAML front matter for problems the upstream linter does not
  * report: a missing or empty `name`, and duplicate keys at any depth.
  * @param {string} text
+ * @param {object} [options]
+ * @param {boolean} [options.nameDefinedElsewhere] Whether `name` is set in a
+ * fenced YAML block instead, so a front matter without it is not an error.
  * @returns {import("./analyze").Problem[]}
  */
-function checkFrontMatter(text) {
+function checkFrontMatter(text, { nameDefinedElsewhere = false } = {}) {
   const frontMatter = getFrontMatter(text);
   if (!frontMatter) {
     return [];
@@ -105,13 +119,13 @@ function checkFrontMatter(text) {
   }
   const problems = [];
   if (doc.contents === null) {
-    checkName(null, frontMatter, problems);
+    checkName(null, frontMatter, { nameDefinedElsewhere, problems });
     return problems;
   }
   if (!isMap(doc.contents)) {
     return [];
   }
-  checkName(doc.contents, frontMatter, problems);
+  checkName(doc.contents, frontMatter, { nameDefinedElsewhere, problems });
   findDuplicateKeys(doc.contents, "", {
     problems,
     text,

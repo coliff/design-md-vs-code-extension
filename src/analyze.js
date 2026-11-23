@@ -20,10 +20,17 @@ const cache = new Map();
  */
 
 /**
+ * @typedef {object} Summary
+ * @property {number} errors
+ * @property {number} warnings
+ * @property {number} infos
+ */
+
+/**
  * Lint DESIGN.md content and locate each finding in the text.
  * Results are cached by content so providers can share one lint run.
  * @param {string} text
- * @returns {{ report: import("@google/design.md/linter").LintReport | null, problems: Problem[] }}
+ * @returns {{ report: import("@google/design.md/linter").LintReport | null, problems: Problem[], summary: Summary }}
  */
 function analyze(text) {
   const cached = cache.get(text);
@@ -46,37 +53,58 @@ function isReportedFinding(finding, hasDuplicates) {
   return !(hasDuplicates && isUpstreamDuplicateKey(finding));
 }
 
+/**
+ * Count problems by severity, so the preview matches the Problems panel.
+ * @param {Problem[]} problems
+ * @returns {Summary}
+ */
+function summarize(problems) {
+  const count = (severity) =>
+    problems.filter((problem) => problem.severity === severity).length;
+  return {
+    errors: count("error"),
+    infos: count("info"),
+    warnings: count("warning"),
+  };
+}
+
+function lintText(text) {
+  try {
+    return { report: lint(text) };
+  } catch (error) {
+    return {
+      error: {
+        start: 0,
+        end: 0,
+        severity: "error",
+        message: error instanceof Error ? error.message : String(error),
+        rule: "parse-error",
+      },
+      report: null,
+    };
+  }
+}
+
 function runLint(text) {
-  const extra = checkFrontMatter(text);
+  const { error, report } = lintText(text);
+  const extra = checkFrontMatter(text, {
+    nameDefinedElsewhere: Boolean(report?.designSystem.name),
+  });
   const hasDuplicates = extra.some(
     (problem) => problem.rule === "duplicate-key",
   );
-  try {
-    const report = lint(text);
-    const problems = report.findings
-      .filter((finding) => isReportedFinding(finding, hasDuplicates))
-      .map((finding) => ({
-        ...locateFinding(text, finding),
-        severity: finding.severity,
-        message: finding.message,
-        rule: finding.rule,
-      }));
-    return { report, problems: [...extra, ...problems] };
-  } catch (error) {
-    return {
-      report: null,
-      problems: [
-        ...extra,
-        {
-          start: 0,
-          end: 0,
-          severity: "error",
-          message: error instanceof Error ? error.message : String(error),
-          rule: "parse-error",
-        },
-      ],
-    };
-  }
+  const located = report
+    ? report.findings
+        .filter((finding) => isReportedFinding(finding, hasDuplicates))
+        .map((finding) => ({
+          ...locateFinding(text, finding),
+          severity: finding.severity,
+          message: finding.message,
+          rule: finding.rule,
+        }))
+    : [error];
+  const problems = [...extra, ...located];
+  return { problems, report, summary: summarize(problems) };
 }
 
 /**
