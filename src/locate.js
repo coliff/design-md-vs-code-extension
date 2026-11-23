@@ -2,15 +2,16 @@
 
 const { isMap, isScalar, parseDocument } = require("yaml");
 
-const FRONT_MATTER = /^---\r?\n(?<body>[\s\S]*?)^---[ \t]*$/mu;
+const FRONT_MATTER = /^---[ \t]*\r?\n(?<body>[\s\S]*?)^---[ \t]*$/mu;
 const REFERENCE = /\{(?<path>[\w-]+(?:\.[\w-]+)+)\}/gu;
 const HEX_COLOR = /^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu;
-const SECTION_NAME = /Section '(?<name>[^']+)'/u;
+const SECTION_NAME =
+  /^Section '(?<name>.+?)' (?:appears before|is defined in) /u;
 
 /**
  * Locate the YAML front matter block.
  * @param {string} text
- * @returns {{ start: number, end: number, body: string, bodyStart: number } | null}
+ * @returns {{ start: number, end: number, body: string, bodyStart: number, bodyEnd: number } | null}
  */
 function getFrontMatter(text) {
   const match = FRONT_MATTER.exec(text);
@@ -23,6 +24,7 @@ function getFrontMatter(text) {
     end: match[0].length,
     body: match.groups.body,
     bodyStart,
+    bodyEnd: bodyStart + match.groups.body.length,
   };
 }
 
@@ -200,7 +202,7 @@ function isInFrontMatter(text, offset) {
   return (
     Boolean(frontMatter) &&
     offset >= frontMatter.bodyStart &&
-    offset < frontMatter.end - 3
+    offset < frontMatter.bodyEnd
   );
 }
 

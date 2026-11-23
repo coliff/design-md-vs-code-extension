@@ -55,6 +55,33 @@ describe("analyze", () => {
     assert.equal(broken.slice(problem.start, problem.end), "Typography");
   });
 
+  it("locates a section-order warning on a heading with an apostrophe", () => {
+    const dosIndex = template.indexOf("## Do's and Don'ts");
+    const dos = template.slice(dosIndex);
+    const reordered = template
+      .slice(0, dosIndex)
+      .replace("## Colors", `${dos}\n## Colors`);
+    const problem = analyze(reordered).problems.find(
+      (item) => item.rule === "section-order",
+    );
+    assert.ok(problem);
+    assert.equal(
+      reordered.slice(problem.start, problem.end),
+      "Do's and Don'ts",
+    );
+  });
+
+  it("summarizes the located problems, not the raw linter findings", () => {
+    const text = template.replace("name: My Design System\n", "");
+    const { problems, report, summary } = analyze(text);
+    assert.ok(report);
+    assert.equal(summary.errors, 1);
+    assert.equal(
+      summary.errors + summary.warnings + summary.infos,
+      problems.length,
+    );
+  });
+
   it("returns the same cached result for identical content", () => {
     assert.equal(analyze(broken), analyze(broken));
   });

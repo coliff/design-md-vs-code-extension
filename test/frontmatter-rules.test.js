@@ -34,6 +34,37 @@ describe("checkFrontMatter", () => {
     assert.equal(text.slice(problem.start, problem.end), "---");
   });
 
+  it("does not flag a missing name that a YAML block defines", () => {
+    const text = doc("---", "description: d", "---");
+    assert.deepEqual(
+      checkFrontMatter(text, { nameDefinedElsewhere: true }),
+      [],
+    );
+  });
+
+  it("does not flag a name set in a fenced YAML block", () => {
+    const text = [
+      "---",
+      "description: d",
+      "---",
+      "",
+      "```yaml",
+      "name: Real",
+      "```",
+      "",
+    ].join("\n");
+    assert.equal(byRule(analyze(text).problems, "missing-name").length, 0);
+  });
+
+  it("flags duplicate keys inside a list", () => {
+    const text = doc("---", "name: X", "items:", "  - a: 1", "    a: 2", "---");
+    const [problem] = byRule(checkFrontMatter(text), "duplicate-key");
+    assert.ok(problem);
+    assert.match(problem.message, /'items\[0\]'/u);
+    assert.equal(text.slice(problem.start, problem.end), "a");
+    assert.equal(text.lastIndexOf("a: 2"), problem.start);
+  });
+
   it("flags a missing name in empty front matter", () => {
     const text = doc("---", "---");
     assert.equal(byRule(checkFrontMatter(text), "missing-name").length, 1);

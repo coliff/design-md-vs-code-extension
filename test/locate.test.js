@@ -42,6 +42,12 @@ describe("getFrontMatter", () => {
     assert.ok(frontMatter);
     assert.equal(frontMatter.bodyStart, 5);
   });
+
+  it("allows trailing whitespace after the opening fence", () => {
+    const frontMatter = getFrontMatter(doc.replace("---\n", "---  \n"));
+    assert.ok(frontMatter);
+    assert.ok(frontMatter.body.startsWith("colors:"));
+  });
 });
 
 describe("locatePath", () => {
@@ -106,5 +112,11 @@ describe("isInFrontMatter", () => {
   it("distinguishes front matter from the body", () => {
     assert.equal(isInFrontMatter(doc, doc.indexOf("primary")), true);
     assert.equal(isInFrontMatter(doc, doc.indexOf("## Colors")), false);
+  });
+
+  it("excludes a closing fence with trailing whitespace", () => {
+    const text = "---\nname: X\n---   \n";
+    assert.equal(isInFrontMatter(text, text.indexOf("name")), true);
+    assert.equal(isInFrontMatter(text, text.lastIndexOf("---") + 1), false);
   });
 });

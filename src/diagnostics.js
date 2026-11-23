@@ -63,6 +63,9 @@ function registerDiagnostics(context) {
   }
 
   function schedule(document) {
+    if (!isDesignDocument(document)) {
+      return;
+    }
     const key = document.uri.toString();
     clearTimeout(timers.get(key));
     timers.set(
@@ -80,9 +83,13 @@ function registerDiagnostics(context) {
     vscode.workspace.onDidChangeTextDocument((event) =>
       schedule(event.document),
     ),
-    vscode.workspace.onDidCloseTextDocument((document) =>
-      collection.delete(document.uri),
-    ),
+    vscode.workspace.onDidCloseTextDocument((document) => {
+      // A pending debounced run would otherwise re-add diagnostics after close.
+      const key = document.uri.toString();
+      clearTimeout(timers.get(key));
+      timers.delete(key);
+      collection.delete(document.uri);
+    }),
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration("designMd.validate")) {
         vscode.workspace.textDocuments.forEach(validate);
