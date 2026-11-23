@@ -7,6 +7,7 @@
 ## 1.0.1 - 2026-11-23
 
 - **Quick fixes** to add a missing `name` to the front matter and to reorder sections into the spec's canonical order.
+- **File size optimizations**
 - **Bug fixes**
 
 ## 1.0.0 - 2026-11-23
