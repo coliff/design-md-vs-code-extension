@@ -2,6 +2,7 @@
 
 const MarkdownIt = require("markdown-it");
 const { describeValue, formatDimension } = require("./format");
+const { localize } = require("./l10n");
 const { getFrontMatter } = require("./locate");
 
 const markdown = new MarkdownIt({ html: false, linkify: true });
@@ -16,7 +17,13 @@ const HTML_ESCAPES = {
 const SAMPLE_TEXT = "The quick brown fox jumps over the lazy dog";
 const WHITE_LUMINANCE = 1;
 const BLACK_LUMINANCE = 0;
-const PARSE_ERROR_HTML = `<header><h1>DESIGN.md</h1><p class="badge fail">Unable to parse this document. See the Problems panel.</p></header>`;
+
+function parseErrorHtml() {
+  const message = localize(
+    "Unable to parse this document. See the Problems panel.",
+  );
+  return `<header><h1>DESIGN.md</h1><p class="badge fail">${escapeHtml(message)}</p></header>`;
+}
 
 function escapeHtml(value) {
   return String(value).replaceAll(/["&'<>]/gu, (char) => HTML_ESCAPES[char]);
@@ -53,7 +60,7 @@ function wcagGrade(ratio) {
   if (ratio >= 3) {
     return "AA Large";
   }
-  return "Fail";
+  return localize("Fail");
 }
 
 /**
@@ -70,7 +77,7 @@ function formatRatio(ratio) {
 function contrastBadge(label, ratio) {
   const grade = wcagGrade(ratio);
   const passClass = ratio >= 4.5 ? "pass" : "fail";
-  return `<span class="badge ${passClass}" title="${escapeHtml(label)}">${escapeHtml(label)} ${formatRatio(ratio)} ${grade}</span>`;
+  return `<span class="badge ${passClass}" title="${escapeHtml(label)}">${escapeHtml(label)} ${formatRatio(ratio)} ${escapeHtml(grade)}</span>`;
 }
 
 function section(title, body) {
@@ -87,7 +94,7 @@ function renderColors(colors, rules) {
     items.push(`<li class="swatch">
   <div class="chip ${className}"></div>
   <div class="meta"><strong>${escapeHtml(name)}</strong><code>${escapeHtml(color.hex)}</code></div>
-  <div class="badges">${contrastBadge("on white", contrast(color.luminance, WHITE_LUMINANCE))}${contrastBadge("on black", contrast(color.luminance, BLACK_LUMINANCE))}</div>
+  <div class="badges">${contrastBadge(localize("on white"), contrast(color.luminance, WHITE_LUMINANCE))}${contrastBadge(localize("on black"), contrast(color.luminance, BLACK_LUMINANCE))}</div>
 </li>`);
   }
   return items.length > 0 ? `<ul class="swatches">${items.join("")}</ul>` : "";
@@ -163,9 +170,9 @@ function renderComponents(components) {
 
 function renderSummary({ errors, warnings, infos }) {
   return `<p class="summary">
-  <span class="badge ${errors > 0 ? "fail" : "pass"}">${errors} errors</span>
-  <span class="badge ${warnings > 0 ? "warn" : "pass"}">${warnings} warnings</span>
-  <span class="badge">${infos} info</span>
+  <span class="badge ${errors > 0 ? "fail" : "pass"}">${escapeHtml(localize("{0} errors", errors))}</span>
+  <span class="badge ${warnings > 0 ? "warn" : "pass"}">${escapeHtml(localize("{0} warnings", warnings))}</span>
+  <span class="badge">${escapeHtml(localize("{0} info", infos))}</span>
 </p>`;
 }
 
@@ -178,11 +185,11 @@ function renderReport(report, summary, rules) {
       : "",
     renderSummary(summary),
     "</header>",
-    section("Colors", renderColors(system.colors, rules)),
-    section("Typography", renderTypography(system.typography, rules)),
-    section("Spacing", renderScale(system.spacing, "spacing", rules)),
-    section("Rounded", renderScale(system.rounded, "rounded", rules)),
-    section("Components", renderComponents(system.components)),
+    section(localize("Colors"), renderColors(system.colors, rules)),
+    section(localize("Typography"), renderTypography(system.typography, rules)),
+    section(localize("Spacing"), renderScale(system.spacing, "spacing", rules)),
+    section(localize("Rounded"), renderScale(system.rounded, "rounded", rules)),
+    section(localize("Components"), renderComponents(system.components)),
   ].join("\n");
 }
 
@@ -196,9 +203,19 @@ function renderReport(report, summary, rules) {
  * @param {string} options.css Stylesheet contents.
  * @param {string} options.nonce CSP nonce for the inline stylesheet.
  * @param {string} options.cspSource Webview CSP source.
+ * @param {string} [options.lang] VS Code display language for the `lang`
+ * attribute. Defaults to "en".
  * @returns {string}
  */
-function buildPreviewHtml({ text, report, summary, css, nonce, cspSource }) {
+function buildPreviewHtml({
+  text,
+  report,
+  summary,
+  css,
+  nonce,
+  cspSource,
+  lang = "en",
+}) {
   const rules = [];
   const frontMatter = getFrontMatter(text);
   const prose = markdown.render(
@@ -206,14 +223,14 @@ function buildPreviewHtml({ text, report, summary, css, nonce, cspSource }) {
   );
   const body = report
     ? renderReport(report, summary ?? report.summary, rules)
-    : PARSE_ERROR_HTML;
+    : parseErrorHtml();
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${escapeHtml(lang)}">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; img-src ${cspSource} https: data:; font-src ${cspSource} https:;">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DESIGN.md Preview</title>
+<title>${escapeHtml(localize("DESIGN.md Preview"))}</title>
 <style nonce="${nonce}">
 ${css}
 ${rules.join("\n")}

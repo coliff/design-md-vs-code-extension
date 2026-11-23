@@ -1,0 +1,12 @@
+{
+  "displayName": "DESIGN.md",
+  "description": "DESIGN.md デザイン システム ファイルの作成、検証、プレビュー",
+  "command.openPreview": "プレビューを開く",
+  "command.openPreviewToSide": "プレビューを横に開く",
+  "command.validate": "検証",
+  "command.new": "新しい DESIGN.md ファイル",
+  "command.fixSectionOrder": "セクションの順序を修正",
+  "config.validate.enable": "公式の @google/design.md リンターで DESIGN.md ファイルを検証します。",
+  "config.validate.contrastRatio": "コンポーネントの textColor と backgroundColor のコントラスト比が WCAG AA の基準 (4.5:1) を下回る場合に警告します。",
+  "config.validate.debounceMs": "編集後に再検証するまでの遅延時間 (ミリ秒)。"
+}

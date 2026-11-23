@@ -1,9 +1,26 @@
 {
   "Add 'name' to the front matter": "Add 'name' to the front matter",
+  "Colors": "Colors",
+  "Components": "Components",
   "DESIGN.md already exists.": "DESIGN.md already exists.",
+  "DESIGN.md Preview": "DESIGN.md Preview",
+  "Duplicate key '{0}' in '{1}'. It is already defined on line {2}.": "Duplicate key '{0}' in '{1}'. It is already defined on line {2}.",
+  "Duplicate key '{0}' in the front matter. It is already defined on line {1}.": "Duplicate key '{0}' in the front matter. It is already defined on line {1}.",
+  "Fail": "Fail",
+  "Missing required 'name' field. Add a name for the design system to the front matter.": "Missing required 'name' field. Add a name for the design system to the front matter.",
+  "on black": "on black",
+  "on white": "on white",
   "Open a DESIGN.md file first.": "Open a DESIGN.md file first.",
   "Preview {0}": "Preview {0}",
   "Reorder sections to match the DESIGN.md spec": "Reorder sections to match the DESIGN.md spec",
+  "Rounded": "Rounded",
   "Sections are already in order.": "Sections are already in order.",
-  "Unresolved reference `{0}`": "Unresolved reference `{0}`"
+  "Spacing": "Spacing",
+  "The 'name' field must be a non-empty string.": "The 'name' field must be a non-empty string.",
+  "Typography": "Typography",
+  "Unable to parse this document. See the Problems panel.": "Unable to parse this document. See the Problems panel.",
+  "Unresolved reference `{0}`": "Unresolved reference `{0}`",
+  "{0} errors": "{0} errors",
+  "{0} info": "{0} info",
+  "{0} warnings": "{0} warnings"
 }

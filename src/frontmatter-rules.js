@@ -1,6 +1,7 @@
 "use strict";
 
 const { isMap, isScalar, isSeq, parseDocument } = require("yaml");
+const { localize } = require("./l10n");
 const { getFrontMatter } = require("./locate");
 
 /**
@@ -30,12 +31,23 @@ function recordKey(pair, scope) {
     seen.set(name, start);
     return;
   }
-  const where = path ? `'${path}'` : "the front matter";
+  const line = lineOf(text, first);
   problems.push({
     start,
     end: toOffset(pair.key.range[1]),
     severity: "error",
-    message: `Duplicate key '${name}' in ${where}. It is already defined on line ${lineOf(text, first)}.`,
+    message: path
+      ? localize(
+          "Duplicate key '{0}' in '{1}'. It is already defined on line {2}.",
+          name,
+          path,
+          line,
+        )
+      : localize(
+          "Duplicate key '{0}' in the front matter. It is already defined on line {1}.",
+          name,
+          line,
+        ),
     rule: "duplicate-key",
   });
 }
@@ -76,8 +88,9 @@ function checkName(map, frontMatter, { nameDefinedElsewhere, problems }) {
       start: 0,
       end: 3,
       severity: "error",
-      message:
+      message: localize(
         "Missing required 'name' field. Add a name for the design system to the front matter.",
+      ),
       rule: "missing-name",
     });
     return;
@@ -93,7 +106,7 @@ function checkName(map, frontMatter, { nameDefinedElsewhere, problems }) {
       start: frontMatter.bodyStart + start,
       end: frontMatter.bodyStart + end,
       severity: "error",
-      message: "The 'name' field must be a non-empty string.",
+      message: localize("The 'name' field must be a non-empty string."),
       rule: "missing-name",
     });
   }

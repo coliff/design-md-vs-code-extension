@@ -96,6 +96,7 @@ class PreviewManager {
     panel.webview.html = buildPreviewHtml({
       cspSource: panel.webview.cspSource,
       css,
+      lang: vscode.env.language,
       nonce: crypto.randomBytes(16).toString("base64"),
       report,
       summary,
