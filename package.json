@@ -37,6 +37,7 @@
     "package": "npm run vscode:prepublish && vsce package",
     "prettier": "prettier --write \"**/*.{css,js,json,md,mjs,yml}\"",
     "spellcheck": "npx cspell \"**/*.{html,js,json,md,yml}\"",
+    "style": "npx stylelint \"src/*.css\" --fix --formatter verbose",
     "test": "npm run lint-js && npm run compile && node --check out/extension.js && node --require ./test/css-register.js --test \"test/**/*.test.js\"",
     "vscode:prepublish": "node esbuild.config.mjs --minify",
     "watch": "node esbuild.config.mjs --watch"
