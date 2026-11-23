@@ -1,12 +1,28 @@
 "use strict";
 
+const MarkdownIt = require("markdown-it");
 const { isMap, isScalar, parseDocument } = require("yaml");
 
 const FRONT_MATTER = /^---[ \t]*\r?\n(?<body>[\s\S]*?)^---[ \t]*$/mu;
 const REFERENCE = /\{(?<path>[\w-]+(?:\.[\w-]+)+)\}/gu;
 const HEX_COLOR = /^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu;
-const SECTION_NAME =
-  /^Section '(?<name>.+?)' (?:appears before|is defined in) /u;
+const SECTION_ORDER =
+  /^Section '(?<current>.+?)' appears before '(?<next>.+?)'(?:,|$)/u;
+const DUPLICATE_SECTION =
+  /^Section '(?<key>.+?)' is defined in both .+ and code block (?<block>\d+)\.$/u;
+
+/**
+ * Section headings the spec accepts in place of a canonical name, copied from
+ * the upstream `spec-config.yaml`. Section-order messages only use canonical
+ * names. A test checks this stays in sync with the installed linter.
+ */
+const SECTION_ALIASES = new Map([
+  ["Brand & Style", "Overview"],
+  ["Elevation", "Elevation & Depth"],
+  ["Layout & Spacing", "Layout"],
+]);
+
+const markdown = new MarkdownIt();
 
 /**
  * Locate the YAML front matter block.
@@ -77,18 +93,114 @@ function locatePath(text, path) {
   };
 }
 
-function locateHeading(text, name) {
-  const escaped = name.replaceAll(/[.*+?^${}()|[\]\\]/gu, String.raw`\$&`);
-  const heading = new RegExp(
-    String.raw`^#{1,6}[ \t]+(?<title>${escaped})[ \t]*$`,
-    "mu",
+function lineStarts(text) {
+  const starts = [0];
+  for (let index = text.indexOf("\n"); index !== -1;) {
+    starts.push(index + 1);
+    index = text.indexOf("\n", index + 1);
+  }
+  return starts;
+}
+
+/**
+ * Parse the Markdown after the front matter, so YAML comments and fenced code
+ * are never mistaken for headings.
+ * @param {string} text
+ * @returns {{ tokens: import("markdown-it").Token[], firstLine: number, starts: number[] }}
+ */
+function parseBody(text) {
+  const frontMatter = getFrontMatter(text);
+  const offset = frontMatter ? frontMatter.end : 0;
+  return {
+    firstLine: text.slice(0, offset).split("\n").length - 1,
+    starts: lineStarts(text),
+    tokens: markdown.parse(text.slice(offset), {}),
+  };
+}
+
+function lineRange(text, starts, line) {
+  const start = starts[line] ?? text.length;
+  const next = starts[line + 1];
+  const end = next === undefined ? text.length : next - 1;
+  return { start, text: text.slice(start, end) };
+}
+
+/**
+ * List the level-2 headings the linter treats as sections, with each title
+ * resolved to its canonical section name.
+ * @param {string} text
+ * @returns {Array<{ section: string, start: number, end: number }>}
+ */
+function sectionHeadings(text) {
+  const { firstLine, starts, tokens } = parseBody(text);
+  const headings = [];
+  tokens.forEach((token, index) => {
+    if (token.type !== "heading_open" || token.tag !== "h2" || !token.map) {
+      return;
+    }
+    const title = tokens[index + 1].content.trim();
+    const line = lineRange(text, starts, firstLine + token.map[0]);
+    const column = line.text.indexOf(title);
+    if (!title || column === -1) {
+      return;
+    }
+    const start = line.start + column;
+    headings.push({
+      end: start + title.length,
+      section: SECTION_ALIASES.get(title) ?? title,
+      start,
+    });
+  });
+  return headings;
+}
+
+/**
+ * Find the heading a section-order finding is about: the first `current`
+ * section that is directly followed (ignoring unknown sections) by `next`.
+ */
+function locateSectionOrder(text, { current, next }, known) {
+  const headings = sectionHeadings(text).filter(
+    (heading) => !known || known.has(heading.section),
   );
-  const match = heading.exec(text);
-  if (!match) {
+  const index = headings.findIndex(
+    (heading, position) =>
+      heading.section === current && headings[position + 1]?.section === next,
+  );
+  const heading =
+    headings[index] ?? headings.find((item) => item.section === current);
+  return heading ? { start: heading.start, end: heading.end } : null;
+}
+
+/**
+ * Find a top-level key inside the given fenced YAML code block (1-based, the
+ * same numbering the linter uses in its message).
+ */
+function locateCodeBlockKey(text, { block, key }) {
+  const { firstLine, starts, tokens } = parseBody(text);
+  const fences = tokens.filter(
+    (token) =>
+      token.type === "fence" &&
+      ["yaml", "yml"].includes(token.info.trim().split(/\s+/u)[0]),
+  );
+  const fence = fences[Number(block) - 1];
+  if (!fence?.map) {
     return null;
   }
-  const start = match.index + match[0].indexOf(match.groups.title);
-  return { start, end: start + name.length };
+  const escaped = key.replaceAll(/[.*+?^${}()|[\]\\]/gu, String.raw`\$&`);
+  const pattern = new RegExp(
+    String.raw`^(?<quote>["']?)${escaped}\k<quote>[ \t]*:`,
+    "u",
+  );
+  const [open, close] = fence.map;
+  for (let line = open + 1; line < close; line += 1) {
+    const { start, text: content } = lineRange(text, starts, firstLine + line);
+    const match = pattern.exec(content);
+    if (match) {
+      return { start, end: start + match[0].replace(/[ \t]*:$/u, "").length };
+    }
+  }
+  const { start, text: opening } = lineRange(text, starts, firstLine + open);
+  return { start, end: start + opening.trimEnd().length };
 }
 
 function fallbackRange(text) {
@@ -114,6 +226,17 @@ function locateReference(text, location, message) {
 }
 
 /**
+ * The canonical section names, read from the "Expected order" list that
+ * section-order messages end with.
+ * @param {{ message: string }} finding
+ * @returns {Set<string> | null}
+ */
+function knownSections(finding) {
+  const [, order] = finding.message.split("Expected order: ");
+  return order ? new Set(order.split(", ")) : null;
+}
+
+/**
  * Map a linter finding to a text range.
  * @param {string} text
  * @param {{ path?: string, message: string, rule?: string }} finding
@@ -124,14 +247,12 @@ function locateFinding(text, finding) {
   if (location) {
     return locateReference(text, location, finding.message);
   }
-  const section = SECTION_NAME.exec(finding.message);
-  if (section) {
-    const heading = locateHeading(text, section.groups.name);
-    if (heading) {
-      return heading;
-    }
-  }
-  return fallbackRange(text);
+  const order = SECTION_ORDER.exec(finding.message);
+  const duplicate = DUPLICATE_SECTION.exec(finding.message);
+  const range =
+    (order && locateSectionOrder(text, order.groups, knownSections(finding))) ||
+    (duplicate && locateCodeBlockKey(text, duplicate.groups));
+  return range || fallbackRange(text);
 }
 
 /**
@@ -207,6 +328,7 @@ function isInFrontMatter(text, offset) {
 }
 
 module.exports = {
+  SECTION_ALIASES,
   findColorValues,
   getFrontMatter,
   isInFrontMatter,

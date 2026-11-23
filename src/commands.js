@@ -25,11 +25,19 @@ async function resolveDocument(uri) {
 async function createDesignFile() {
   const [folder] = vscode.workspace.workspaceFolders ?? [];
   if (!folder) {
-    const document = await vscode.workspace.openTextDocument({
-      content: template,
-      language: "markdown",
-    });
-    await vscode.window.showTextDocument(document);
+    /*
+     * Name the untitled file DESIGN.md so it gets diagnostics, completion and
+     * colors before it is saved, and the save dialog suggests that name.
+     */
+    const document = await vscode.workspace.openTextDocument(
+      vscode.Uri.parse("untitled:DESIGN.md"),
+    );
+    const editor = await vscode.window.showTextDocument(document);
+    if (document.getText() === "") {
+      await editor.edit((builder) =>
+        builder.insert(new vscode.Position(0, 0), template),
+      );
+    }
     return;
   }
   const target = vscode.Uri.joinPath(folder.uri, "DESIGN.md");

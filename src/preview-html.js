@@ -56,10 +56,21 @@ function wcagGrade(ratio) {
   return "Fail";
 }
 
+/**
+ * Show a ratio truncated to two decimals. WCAG thresholds are not rounded, so
+ * rounding 4.496 up to "4.50" would sit next to a failing AA grade.
+ * @param {number} ratio
+ * @returns {string}
+ */
+function formatRatio(ratio) {
+  // The epsilon keeps float error from turning e.g. 4.57 into 4.56.
+  return (Math.floor(ratio * 100 + 1e-9) / 100).toFixed(2);
+}
+
 function contrastBadge(label, ratio) {
   const grade = wcagGrade(ratio);
   const passClass = ratio >= 4.5 ? "pass" : "fail";
-  return `<span class="badge ${passClass}" title="${escapeHtml(label)}">${escapeHtml(label)} ${ratio.toFixed(2)} ${grade}</span>`;
+  return `<span class="badge ${passClass}" title="${escapeHtml(label)}">${escapeHtml(label)} ${formatRatio(ratio)} ${grade}</span>`;
 }
 
 function section(title, body) {

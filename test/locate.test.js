@@ -1,8 +1,12 @@
 "use strict";
 
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const { parse } = require("yaml");
 const { describe, it } = require("node:test");
 const {
+  SECTION_ALIASES,
   findColorValues,
   getFrontMatter,
   isInFrontMatter,
@@ -118,5 +122,26 @@ describe("isInFrontMatter", () => {
     const text = "---\nname: X\n---   \n";
     assert.equal(isInFrontMatter(text, text.indexOf("name")), true);
     assert.equal(isInFrontMatter(text, text.lastIndexOf("---") + 1), false);
+  });
+});
+
+function specAliases() {
+  const config = parse(
+    fs.readFileSync(
+      path.join(
+        __dirname,
+        "../node_modules/@google/design.md/dist/linter/spec-config.yaml",
+      ),
+      "utf8",
+    ),
+  );
+  return config.sections.flatMap(({ aliases = [], canonical }) =>
+    aliases.map((alias) => [alias, canonical]),
+  );
+}
+
+describe("SECTION_ALIASES", () => {
+  it("matches the aliases in the installed linter's spec config", () => {
+    assert.deepEqual([...SECTION_ALIASES].toSorted(), specAliases().toSorted());
   });
 });

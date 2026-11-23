@@ -19,6 +19,14 @@ function render(text) {
 }
 
 describe("buildPreviewHtml", () => {
+  it("does not round a contrast ratio up past a WCAG threshold", () => {
+    // #7071AF on white is 4.4968:1, just below AA.
+    const html = render(
+      '---\nname: Test\ncolors:\n  primary: "#7071AF"\n---\n',
+    );
+    assert.match(html, /on white 4\.49 AA Large/u);
+  });
+
   it("renders tokens, prose and a nonce-locked CSP", () => {
     const html = render(template);
     assert.match(html, /<h1>My Design System<\/h1>/u);
