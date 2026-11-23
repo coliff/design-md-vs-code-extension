@@ -8,5 +8,6 @@
   "command.fixSectionOrder": "Corregir orden de las secciones",
   "config.validate.enable": "Validar archivos DESIGN.md con el linter oficial de @google/design.md.",
   "config.validate.contrastRatio": "Advertir cuando la relación de contraste entre textColor y backgroundColor de un componente es inferior al umbral WCAG AA de 4.5:1.",
-  "config.validate.debounceMs": "Retraso en milisegundos antes de volver a validar después de una edición."
+  "config.validate.debounceMs": "Retraso en milisegundos antes de volver a validar después de una edición.",
+  "config.preview.contrastBadges": "Muestra debajo de cada muestra de color de la vista previa de DESIGN.md insignias con la relación de contraste WCAG sobre blanco y sobre negro. Es independiente de `#designMd.validate.contrastRatio#`, que comprueba los colores de texto y fondo de los componentes."
 }

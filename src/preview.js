@@ -22,7 +22,10 @@ class PreviewManager {
         this.scheduleRefresh(event.document),
       ),
       vscode.workspace.onDidChangeConfiguration((event) => {
-        if (event.affectsConfiguration("designMd.validate")) {
+        if (
+          event.affectsConfiguration("designMd.validate") ||
+          event.affectsConfiguration("designMd.preview")
+        ) {
           this.refreshAll();
         }
       }),
@@ -90,16 +93,19 @@ class PreviewManager {
   // eslint-disable-next-line class-methods-use-this
   render(document, panel) {
     const text = document.getText();
-    const { report, summary } = analyze(text, {
+    const { problems, report } = analyze(text, {
       contrastRatio: getConfig().contrastRatio,
     });
     panel.webview.html = buildPreviewHtml({
+      contrastBadges: vscode.workspace
+        .getConfiguration("designMd.preview")
+        .get("contrastBadges", false),
       cspSource: panel.webview.cspSource,
       css,
       lang: vscode.env.language,
       nonce: crypto.randomBytes(16).toString("base64"),
+      problems,
       report,
-      summary,
       text,
     });
   }

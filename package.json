@@ -90,6 +90,11 @@
           "default": 300,
           "minimum": 0,
           "description": "%config.validate.debounceMs%"
+        },
+        "designMd.preview.contrastBadges": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "%config.preview.contrastBadges%"
         }
       }
     },

@@ -26,6 +26,16 @@ table.frontmatter.design-md-frontmatter
 table.frontmatter.design-md-frontmatter
   table.design-md-frontmatter-nested
   > tbody
+  > tr
+  > th {
+  font-weight: 600;
+  white-space: nowrap;
+  width: 1%;
+}
+
+table.frontmatter.design-md-frontmatter
+  table.design-md-frontmatter-nested
+  > tbody
   > tr:last-child
   > th,
 table.frontmatter.design-md-frontmatter
@@ -36,17 +46,14 @@ table.frontmatter.design-md-frontmatter
   border-bottom: 0;
 }
 
-table.frontmatter.design-md-frontmatter
-  table.design-md-frontmatter-nested
-  > tbody
-  > tr
-  > th {
-  font-weight: 600;
-  white-space: nowrap;
-  width: 1%;
-}
-
+/*
+ * Token values use the body text color with no fill. The theme's preformat
+ * colors were grey on grey in several themes.
+ */
 .design-md-frontmatter code {
+  background: none;
+  color: var(--vscode-editor-foreground, inherit);
+  padding: 0;
   white-space: normal;
 }
 

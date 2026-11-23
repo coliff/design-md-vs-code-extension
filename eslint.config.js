@@ -109,6 +109,20 @@ module.exports = [
     },
   },
   {
+    // The preview renderer is kept in one file on purpose.
+    files: ["src/preview-html.js"],
+    rules: {
+      "max-lines": [
+        "error",
+        {
+          max: 400,
+          skipBlankLines: true,
+          skipComments: true,
+        },
+      ],
+    },
+  },
+  {
     files: ["**/*.mjs"],
     languageOptions: {
       sourceType: "module",
