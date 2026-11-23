@@ -71,6 +71,70 @@ describe("analyze", () => {
     );
   });
 
+  it("locates a section-order warning on an alias heading", () => {
+    const text = template
+      .replace("## Layout\n", "## Layout & Spacing\n")
+      .replace("## Colors\n", "## Colors-old\n")
+      .replace(
+        "## Overview\n",
+        "## Overview\n\n## Layout & Spacing\n\n## Colors\n",
+      );
+    const problem = analyze(text).problems.find(
+      (item) => item.rule === "section-order",
+    );
+    assert.ok(problem);
+    assert.equal(text.slice(problem.start, problem.end), "Layout & Spacing");
+    assert.equal(problem.start, text.indexOf("## Layout & Spacing") + 3);
+  });
+
+  it("skips YAML comments and fenced code when locating a section", () => {
+    const text = [
+      "---",
+      "name: Test",
+      "# Colors",
+      "colors:",
+      '  primary: "#000000"',
+      "---",
+      "",
+      "```md",
+      "## Colors",
+      "```",
+      "",
+      "## Colors ##",
+      "",
+      "## Overview",
+      "",
+    ].join("\n");
+    const problem = analyze(text).problems.find(
+      (item) => item.rule === "section-order",
+    );
+    assert.ok(problem);
+    assert.equal(problem.start, text.indexOf("## Colors ##") + 3);
+    assert.equal(text.slice(problem.start, problem.end), "Colors");
+  });
+
+  it("locates a duplicate section on its key in the code block", () => {
+    const text = [
+      "---",
+      "name: Test",
+      "colors:",
+      '  primary: "#000000"',
+      "---",
+      "",
+      "```yaml",
+      "colors:",
+      '  secondary: "#ffffff"',
+      "```",
+      "",
+    ].join("\n");
+    const problem = analyze(text).problems.find((item) =>
+      item.message.includes("is defined in both"),
+    );
+    assert.ok(problem);
+    assert.equal(problem.start, text.indexOf("```yaml\ncolors") + 8);
+    assert.equal(text.slice(problem.start, problem.end), "colors");
+  });
+
   it("summarizes the located problems, not the raw linter findings", () => {
     const text = template.replace("name: My Design System\n", "");
     const { problems, report, summary } = analyze(text);
