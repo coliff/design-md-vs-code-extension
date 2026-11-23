@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Japanese localization** of commands, settings, diagnostics, quick fixes, notifications and the preview. The extension follows VS Code's display language.
+
 ## 1.0.1 - 2026-11-23
 
 - **Quick fixes** to add a missing `name` to the front matter and to reorder sections into the spec's canonical order.
