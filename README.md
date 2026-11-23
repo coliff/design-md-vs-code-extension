@@ -36,10 +36,11 @@ The extension activates for any markdown file named `DESIGN.md`.
 
 ## Settings
 
-| Setting                        | Default | Description                              |
-| ------------------------------ | ------- | ---------------------------------------- |
-| `designMd.validate.enable`     | `true`  | Validate DESIGN.md files                 |
-| `designMd.validate.debounceMs` | `300`   | Delay before re-validating after an edit |
+| Setting                           | Default | Description                              |
+| --------------------------------- | ------- | ---------------------------------------- |
+| `designMd.validate.enable`        | `true`  | Validate DESIGN.md files                 |
+| `designMd.validate.contrastRatio` | `true`  | Warn about low-contrast component colors |
+| `designMd.validate.debounceMs`    | `300`   | Delay before re-validating after an edit |
 
 ## Development
 

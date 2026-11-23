@@ -13,4 +13,4 @@ Initial release.
 - **New DESIGN.md File** command that creates a spec-valid starter file.
 - **Quick fix** to reorder sections into the spec's canonical order.
 - **Snippets** for front matter, tokens, components and the standard sections (type `design-`).
-- **Validation** with the official [`@google/design.md`](https://www.npmjs.com/package/@google/design.md) linter, shown in the Problems panel as you type.
+- **Validation** with the official [`@google/design.md`](https://www.npmjs.com/package/@google/design.md) linter, shown in the Problems panel as you type. Contrast-ratio warnings can be turned off with `designMd.validate.contrastRatio`.

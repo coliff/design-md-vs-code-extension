@@ -41,22 +41,34 @@ const cache = new Map();
  */
 
 /**
+ * @typedef {object} AnalyzeOptions
+ * @property {boolean} [contrastRatio] Report contrast-ratio warnings. Defaults to true.
+ */
+
+/**
  * Lint DESIGN.md content and locate each finding in the text.
- * Results are cached by content so providers can share one lint run.
+ * Lint runs are cached by content so providers can share one run; options
+ * only filter the cached result.
  * @param {string} text
+ * @param {AnalyzeOptions} [options]
  * @returns {{ report: import("@google/design.md/linter").LintReport | null, problems: Problem[], summary: Summary }}
  */
-function analyze(text) {
-  const cached = cache.get(text);
-  if (cached) {
-    return cached;
+function analyze(text, { contrastRatio = true } = {}) {
+  let result = cache.get(text);
+  if (!result) {
+    result = runLint(text);
+    cache.set(text, result);
+    if (cache.size > CACHE_SIZE) {
+      cache.delete(cache.keys().next().value);
+    }
   }
-  const result = runLint(text);
-  cache.set(text, result);
-  if (cache.size > CACHE_SIZE) {
-    cache.delete(cache.keys().next().value);
+  if (contrastRatio) {
+    return result;
   }
-  return result;
+  const problems = result.problems.filter(
+    (problem) => problem.rule !== "contrast-ratio",
+  );
+  return { ...result, problems, summary: summarize(problems) };
 }
 
 function isReportedFinding(finding, hasDuplicates) {

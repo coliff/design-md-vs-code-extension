@@ -103,6 +103,47 @@ describe("analyze", () => {
   });
 });
 
+describe("analyze contrastRatio option", () => {
+  const lowContrast = template.replace(
+    'textColor: "{colors.on-primary}"',
+    'textColor: "{colors.primary}"',
+  );
+
+  it("reports contrast-ratio warnings by default", () => {
+    const { problems, summary } = analyze(lowContrast);
+    assert.ok(problems.some((problem) => problem.rule === "contrast-ratio"));
+    assert.equal(summary.warnings, analyze(lowContrast, {}).summary.warnings);
+  });
+
+  it("hides contrast-ratio warnings and updates the summary", () => {
+    const shown = analyze(lowContrast, { contrastRatio: true });
+    const hidden = analyze(lowContrast, { contrastRatio: false });
+    const contrastCount = shown.problems.filter(
+      (problem) => problem.rule === "contrast-ratio",
+    ).length;
+    assert.ok(contrastCount > 0);
+    assert.equal(
+      hidden.problems.some((problem) => problem.rule === "contrast-ratio"),
+      false,
+    );
+    assert.equal(hidden.problems.length, shown.problems.length - contrastCount);
+    assert.equal(
+      hidden.summary.warnings,
+      shown.summary.warnings - contrastCount,
+    );
+    assert.equal(hidden.report, shown.report);
+  });
+
+  it("does not alter the cached result when hiding warnings", () => {
+    analyze(lowContrast, { contrastRatio: false });
+    assert.ok(
+      analyze(lowContrast).problems.some(
+        (problem) => problem.rule === "contrast-ratio",
+      ),
+    );
+  });
+});
+
 describe("fixSectionOrderText", () => {
   it("moves Colors before Typography", () => {
     const fixed = fixSectionOrderText(broken);
