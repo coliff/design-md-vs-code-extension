@@ -11,6 +11,6 @@
     "GitHub.vscode-github-actions",
     "GitHub.vscode-pull-request-github",
     "ms-azuretools.vscode-docker",
-    "ms-edgedevtools.vscode-edge-devtools",
+    "ms-edgedevtools.vscode-edge-devtools"
   ]
 }

@@ -10,6 +10,11 @@
 - As a general rule: some rules, attributes, lists should be in alphabetical order.
 - Format everything with Prettier.
 
+## CSS Code Style
+
+- Format with Prettier.
+- Use alphabetical order for properties when possible.
+
 ## Markdown Code Style
 
 - Format with Prettier.

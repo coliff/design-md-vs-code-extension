@@ -5,7 +5,6 @@
 [![Open VSX version](https://img.shields.io/open-vsx/v/coliff/design-md-vs-code-extension?label=Open%20VSX)](https://open-vsx.org/extension/coliff/design-md-vs-code-extension)
 [![Open VSX downloads](https://img.shields.io/open-vsx/dt/coliff/design-md-vs-code-extension)](https://open-vsx.org/extension/coliff/design-md-vs-code-extension)
 
-
 Write, validate and preview [DESIGN.md](https://github.com/google-labs-code/design.md) files in VS Code.
 
 A DESIGN.md file describes a design system: YAML front matter holds the design tokens (`colors`, `typography`, `rounded`, `spacing`, `components`) and the markdown body explains how to use them.

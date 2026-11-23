@@ -58,13 +58,13 @@ code {
 }
 
 .badge {
+  background: var(--vscode-badge-background);
+  border-radius: 10px;
+  color: var(--vscode-badge-foreground);
   display: inline-block;
+  font-size: 0.85em;
   margin: 2px 4px 2px 0;
   padding: 0 6px;
-  border-radius: 10px;
-  font-size: 0.85em;
-  background: var(--vscode-badge-background);
-  color: var(--vscode-badge-foreground);
 }
 
 .badge.pass {
