@@ -1,0 +1,12 @@
+{
+  "displayName": "DESIGN.md",
+  "description": "DESIGN.md-Designsystemdateien schreiben, überprüfen und in der Vorschau anzeigen",
+  "command.openPreview": "Vorschau öffnen",
+  "command.openPreviewToSide": "Vorschau an der Seite öffnen",
+  "command.validate": "Überprüfen",
+  "command.new": "Neue DESIGN.md-Datei",
+  "command.fixSectionOrder": "Reihenfolge der Abschnitte korrigieren",
+  "config.validate.enable": "DESIGN.md-Dateien mit dem offiziellen @google/design.md-Linter überprüfen.",
+  "config.validate.contrastRatio": "Warnen, wenn das Kontrastverhältnis zwischen textColor und backgroundColor einer Komponente unter dem WCAG-AA-Wert von 4.5:1 liegt.",
+  "config.validate.debounceMs": "Verzögerung in Millisekunden vor der erneuten Überprüfung nach einer Bearbeitung."
+}

@@ -1,0 +1,12 @@
+{
+  "displayName": "DESIGN.md",
+  "description": "Scrivi, convalida e visualizza in anteprima i file di design system DESIGN.md",
+  "command.openPreview": "Apri anteprima",
+  "command.openPreviewToSide": "Apri anteprima lateralmente",
+  "command.validate": "Convalida",
+  "command.new": "Nuovo file DESIGN.md",
+  "command.fixSectionOrder": "Correggi ordine delle sezioni",
+  "config.validate.enable": "Convalida i file DESIGN.md con il linter ufficiale @google/design.md.",
+  "config.validate.contrastRatio": "Avvisa quando il rapporto di contrasto tra textColor e backgroundColor di un componente è inferiore alla soglia WCAG AA di 4.5:1.",
+  "config.validate.debounceMs": "Ritardo in millisecondi prima di una nuova convalida dopo una modifica."
+}
