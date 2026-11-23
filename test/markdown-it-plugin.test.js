@@ -66,7 +66,11 @@ function render(path, mode = "table") {
   createMarkdownItPlugin(() => mode)(md);
   vscodeFrontMatter(md);
   vscodeSourceMap(md);
-  return md.render(SOURCE, { currentDocument: { path } });
+  // VS Code tokenizes without the document URI and passes it only when rendering.
+  const tokens = md.parse(SOURCE, { currentDocument: undefined });
+  return md.renderer.render(tokens, md.options, {
+    currentDocument: { path },
+  });
 }
 
 describe("markdown-it plugin", () => {
