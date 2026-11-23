@@ -12,6 +12,7 @@ const SEVERITY = {
 function getConfig() {
   const config = vscode.workspace.getConfiguration("designMd.validate");
   return {
+    contrastRatio: config.get("contrastRatio", true),
     debounceMs: config.get("debounceMs", 300),
     enable: config.get("enable", true),
   };
@@ -23,7 +24,9 @@ function getConfig() {
  * @returns {vscode.Diagnostic[]}
  */
 function toDiagnostics(document) {
-  const { problems } = analyze(document.getText());
+  const { problems } = analyze(document.getText(), {
+    contrastRatio: getConfig().contrastRatio,
+  });
   return problems.map((problem) => {
     const range = new vscode.Range(
       document.positionAt(problem.start),
@@ -103,4 +106,4 @@ function registerDiagnostics(context) {
   return { validate };
 }
 
-module.exports = { registerDiagnostics };
+module.exports = { getConfig, registerDiagnostics };

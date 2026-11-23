@@ -5,6 +5,7 @@ const path = require("node:path");
 const vscode = require("vscode");
 const css = require("./preview.css");
 const { analyze } = require("./analyze");
+const { getConfig } = require("./diagnostics");
 const { buildPreviewHtml } = require("./preview-html");
 
 const REFRESH_DELAY_MS = 200;
@@ -16,9 +17,28 @@ class PreviewManager {
   constructor() {
     /** @type {Map<string, { panel: vscode.WebviewPanel, timer?: NodeJS.Timeout }>} */
     this.previews = new Map();
-    this.subscription = vscode.workspace.onDidChangeTextDocument((event) =>
-      this.scheduleRefresh(event.document),
-    );
+    this.subscriptions = [
+      vscode.workspace.onDidChangeTextDocument((event) =>
+        this.scheduleRefresh(event.document),
+      ),
+      vscode.workspace.onDidChangeConfiguration((event) => {
+        if (event.affectsConfiguration("designMd.validate")) {
+          this.refreshAll();
+        }
+      }),
+    ];
+  }
+
+  /**
+   * Re-render every open preview, e.g. after a settings change.
+   */
+  refreshAll() {
+    for (const document of vscode.workspace.textDocuments) {
+      const entry = this.previews.get(document.uri.toString());
+      if (entry) {
+        this.render(document, entry.panel);
+      }
+    }
   }
 
   /**
@@ -70,7 +90,9 @@ class PreviewManager {
   // eslint-disable-next-line class-methods-use-this
   render(document, panel) {
     const text = document.getText();
-    const { report, summary } = analyze(text);
+    const { report, summary } = analyze(text, {
+      contrastRatio: getConfig().contrastRatio,
+    });
     panel.webview.html = buildPreviewHtml({
       cspSource: panel.webview.cspSource,
       css,
@@ -82,7 +104,7 @@ class PreviewManager {
   }
 
   dispose() {
-    this.subscription.dispose();
+    this.subscriptions.forEach((subscription) => subscription.dispose());
     for (const { panel } of this.previews.values()) {
       panel.dispose();
     }

@@ -79,6 +79,11 @@
           "default": true,
           "description": "%config.validate.enable%"
         },
+        "designMd.validate.contrastRatio": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.validate.contrastRatio%"
+        },
         "designMd.validate.debounceMs": {
           "type": "number",
           "default": 300,

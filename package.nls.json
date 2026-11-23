@@ -7,5 +7,6 @@
   "command.new": "New DESIGN.md File",
   "command.fixSectionOrder": "Fix Section Order",
   "config.validate.enable": "Validate DESIGN.md files with the official @google/design.md linter.",
+  "config.validate.contrastRatio": "Warn when a component's textColor and backgroundColor fall below the WCAG AA contrast ratio of 4.5:1.",
   "config.validate.debounceMs": "Delay in milliseconds before re-validating after an edit."
 }
