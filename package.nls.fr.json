@@ -1,0 +1,12 @@
+{
+  "displayName": "DESIGN.md",
+  "description": "Écrire, valider et afficher un aperçu des fichiers de design system DESIGN.md",
+  "command.openPreview": "Ouvrir l'aperçu",
+  "command.openPreviewToSide": "Ouvrir l'aperçu sur le côté",
+  "command.validate": "Valider",
+  "command.new": "Nouveau fichier DESIGN.md",
+  "command.fixSectionOrder": "Corriger l'ordre des sections",
+  "config.validate.enable": "Valider les fichiers DESIGN.md avec le linter officiel @google/design.md.",
+  "config.validate.contrastRatio": "Avertir lorsque le rapport de contraste entre textColor et backgroundColor d'un composant est inférieur au seuil WCAG AA de 4.5:1.",
+  "config.validate.debounceMs": "Délai en millisecondes avant une nouvelle validation après une modification."
+}

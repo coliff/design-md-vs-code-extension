@@ -17,7 +17,9 @@
   "allowCompoundWords": true,
   "language": "en,en-US",
   "ignorePaths": [
-    ".cspell.json"
+    ".cspell.json",
+    "l10n/bundle.l10n.*.json",
+    "package.nls.*.json"
   ],
   "useGitignore": true
 }

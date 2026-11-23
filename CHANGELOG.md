@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Japanese localization** of commands, settings, diagnostics, quick fixes, notifications and the preview. The extension follows VS Code's display language.
+- **Localization** in French, German, Italian, Japanese and Spanish for commands, settings, diagnostics, quick fixes, notifications and the preview. The extension follows VS Code's display language.
 
 ## 1.0.1 - 2026-11-23
 

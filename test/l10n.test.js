@@ -7,7 +7,7 @@ const { describe, it } = require("node:test");
 const { format, localize } = require("../src/l10n");
 
 const root = path.join(__dirname, "..");
-const LOCALES = ["ja"];
+const LOCALES = ["de", "es", "fr", "it", "ja"];
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(path.join(root, file), "utf8"));
