@@ -1,5 +1,10 @@
 # DESIGN.md
 
+[![Super Linter](https://github.com/coliff/design-md-vs-code-extension/actions/workflows/super-linter.yml/badge.svg)](https://github.com/coliff/design-md-vs-code-extension/actions/workflows/super-linter.yml)
+[![Tests](https://github.com/coliff/design-md-vs-code-extension/actions/workflows/test.yml/badge.svg)](https://github.com/coliff/design-md-vs-code-extension/actions/workflows/test.yml)
+[![Check spelling](https://github.com/coliff/design-md-vs-code-extension/actions/workflows/spellcheck.yml/badge.svg)](https://github.com/coliff/design-md-vs-code-extension/actions/workflows/spellcheck.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
+
 Write, validate and preview [DESIGN.md](https://github.com/google-labs-code/design.md) files in VS Code.
 
 A DESIGN.md file describes a design system: YAML front matter holds the design tokens (`colors`, `typography`, `rounded`, `spacing`, `components`) and the markdown body explains how to use them.
