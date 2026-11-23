@@ -7,6 +7,12 @@ const { getFrontMatter } = require("./locate");
 
 const markdown = new MarkdownIt({ html: false, linkify: true });
 
+const SAMPLE_TEXT = "The quick brown fox jumps over the lazy dog 0123456789";
+const WHITE_LUMINANCE = 1;
+const BLACK_LUMINANCE = 0;
+const SEVERITY_CLASS = { error: "fail", info: "info", warning: "warn" };
+const SEVERITY_ORDER = { error: 0, info: 2, warning: 1 };
+
 const HTML_ESCAPES = {
   '"': "&quot;",
   "&": "&amp;",
@@ -14,19 +20,14 @@ const HTML_ESCAPES = {
   "<": "&lt;",
   ">": "&gt;",
 };
-const SAMPLE_TEXT = "The quick brown fox jumps over the lazy dog";
-const WHITE_LUMINANCE = 1;
-const BLACK_LUMINANCE = 0;
-
-function parseErrorHtml() {
-  const message = localize(
-    "Unable to parse this document. See the Problems panel.",
-  );
-  return `<header><h1>DESIGN.md</h1><p class="badge fail">${escapeHtml(message)}</p></header>`;
-}
+const HEX_COLOR = /^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu;
 
 function escapeHtml(value) {
   return String(value).replaceAll(/["&'<>]/gu, (char) => HTML_ESCAPES[char]);
+}
+
+function cssColor(color) {
+  return color?.type === "color" && HEX_COLOR.test(color.hex) ? color.hex : "";
 }
 
 function cssDimension(dimension) {
@@ -40,14 +41,69 @@ function cssDimension(dimension) {
   return formatDimension(dimension);
 }
 
+/**
+ * Sanitize a font family list and add a generic fallback, so a font that is
+ * not installed falls back to sans-serif rather than the browser's serif.
+ * @param {string | undefined} family
+ * @returns {string}
+ */
 function cssFontFamily(family) {
-  return family ? family.replaceAll(/[^\w\s,'"-]/gu, "") : "";
+  const safe = family ? family.replaceAll(/[^\w\s,'"-]/gu, "").trim() : "";
+  if (!safe) {
+    return "";
+  }
+  return /\b(?:sans-serif|serif|monospace|cursive|fantasy|system-ui)\s*$/iu.test(
+    safe,
+  )
+    ? safe
+    : `${safe}, sans-serif`;
 }
 
 function contrast(luminanceA, luminanceB) {
   const lighter = Math.max(luminanceA, luminanceB);
   const darker = Math.min(luminanceA, luminanceB);
   return (lighter + 0.05) / (darker + 0.05);
+}
+
+/**
+ * Pick black or white sample text, whichever reads better on the color.
+ * @param {number} luminance
+ * @returns {string}
+ */
+function readableText(luminance) {
+  return contrast(luminance, 1) >= contrast(luminance, 0) ? "#fff" : "#000";
+}
+
+function typographyDeclarations(style) {
+  return [
+    style.fontFamily ? `font-family: ${cssFontFamily(style.fontFamily)};` : "",
+    style.fontSize ? `font-size: ${cssDimension(style.fontSize)};` : "",
+    Number.isFinite(style.fontWeight)
+      ? `font-weight: ${style.fontWeight};`
+      : "",
+    style.lineHeight ? `line-height: ${cssDimension(style.lineHeight)};` : "",
+    style.letterSpacing
+      ? `letter-spacing: ${cssDimension(style.letterSpacing)};`
+      : "",
+  ].filter(Boolean);
+}
+
+function propertyList(entries) {
+  const rows = entries
+    .filter(([, value]) => value !== undefined && value !== "")
+    .map(
+      ([property, value]) =>
+        `<tr><th scope="row">${escapeHtml(property)}</th><td><code>${escapeHtml(value)}</code></td></tr>`,
+    )
+    .join("");
+  return rows ? `<table class="props">${rows}</table>` : "";
+}
+
+function parseErrorHtml() {
+  const message = localize(
+    "Unable to parse this document. See the Problems panel.",
+  );
+  return `<header><h1>DESIGN.md</h1><p class="badge fail">${escapeHtml(message)}</p></header>`;
 }
 
 function wcagGrade(ratio) {
@@ -80,21 +136,34 @@ function contrastBadge(label, ratio) {
   return `<span class="badge ${passClass}" title="${escapeHtml(label)}">${escapeHtml(label)} ${formatRatio(ratio)} ${escapeHtml(grade)}</span>`;
 }
 
-function section(title, body) {
-  return body ? `<section><h2>${escapeHtml(title)}</h2>${body}</section>` : "";
+function section(title, body, count) {
+  if (!body) {
+    return "";
+  }
+  const counter =
+    count === undefined ? "" : ` <span class="count">${count}</span>`;
+  return `<section class="card"><h2>${escapeHtml(title)}${counter}</h2>${body}</section>`;
 }
 
-function renderColors(colors, rules) {
+function renderColors(colors, rules, { contrastBadges }) {
   let index = 0;
   const items = [];
   for (const [name, color] of colors) {
     const className = `color-${index}`;
     index += 1;
-    rules.push(`.${className} { background: ${color.hex}; }`);
+    const hex = cssColor(color);
+    if (hex) {
+      rules.push(
+        `.${className} { background: ${hex}; color: ${readableText(color.luminance)}; }`,
+      );
+    }
+    const badges = contrastBadges
+      ? `<div class="badges">${contrastBadge(localize("on white"), contrast(color.luminance, WHITE_LUMINANCE))}${contrastBadge(localize("on black"), contrast(color.luminance, BLACK_LUMINANCE))}</div>`
+      : "";
     items.push(`<li class="swatch">
-  <div class="chip ${className}"></div>
+  <div class="chip ${className}" aria-hidden="true">Aa</div>
   <div class="meta"><strong>${escapeHtml(name)}</strong><code>${escapeHtml(color.hex)}</code></div>
-  <div class="badges">${contrastBadge(localize("on white"), contrast(color.luminance, WHITE_LUMINANCE))}${contrastBadge(localize("on black"), contrast(color.luminance, BLACK_LUMINANCE))}</div>
+  ${badges}
 </li>`);
   }
   return items.length > 0 ? `<ul class="swatches">${items.join("")}</ul>` : "";
@@ -106,22 +175,16 @@ function renderTypography(typography, rules) {
   for (const [name, style] of typography) {
     const className = `type-${index}`;
     index += 1;
-    const declarations = [
-      style.fontFamily
-        ? `font-family: ${cssFontFamily(style.fontFamily)};`
-        : "",
-      style.fontSize ? `font-size: ${cssDimension(style.fontSize)};` : "",
-      Number.isFinite(style.fontWeight)
-        ? `font-weight: ${style.fontWeight};`
-        : "",
-      style.lineHeight ? `line-height: ${cssDimension(style.lineHeight)};` : "",
-      style.letterSpacing
-        ? `letter-spacing: ${cssDimension(style.letterSpacing)};`
-        : "",
-    ].join(" ");
-    rules.push(`.${className} { ${declarations} }`);
+    rules.push(`.${className} { ${typographyDeclarations(style).join(" ")} }`);
+    const properties = propertyList([
+      ["fontFamily", style.fontFamily],
+      ["fontSize", formatDimension(style.fontSize)],
+      ["fontWeight", style.fontWeight],
+      ["lineHeight", formatDimension(style.lineHeight)],
+      ["letterSpacing", formatDimension(style.letterSpacing)],
+    ]);
     items.push(`<li>
-  <div class="meta"><strong>${escapeHtml(name)}</strong><code>${escapeHtml(describeValue(style))}</code></div>
+  <div class="type-meta"><strong>${escapeHtml(name)}</strong>${properties}</div>
   <p class="sample ${className}">${SAMPLE_TEXT}</p>
 </li>`);
   }
@@ -152,45 +215,192 @@ function renderScale(scale, kind, rules) {
     : "";
 }
 
-function renderComponents(components) {
+/**
+ * Turn a token name such as "button-primary" into "Button Primary".
+ * @param {string} name
+ * @returns {string}
+ */
+function displayName(name) {
+  return name
+    .split(/[-_\s]+/u)
+    .filter(Boolean)
+    .map((word) => word[0].toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function colorDeclarations(properties) {
+  const declarations = [];
+  const color = (key) => cssColor(properties.get(key));
+  const background = color("backgroundColor");
+  if (background) {
+    declarations.push(`background: ${background};`);
+  }
+  if (color("textColor")) {
+    declarations.push(`color: ${color("textColor")};`);
+  } else if (/^#(?:[\da-f]{3}|[\da-f]{6})$/iu.test(background)) {
+    // Without a text color, keep the label readable on an opaque fill.
+    const { luminance } = properties.get("backgroundColor");
+    declarations.push(`color: ${readableText(luminance)};`);
+  }
+  if (color("borderColor")) {
+    declarations.push(`border: 1px solid ${color("borderColor")};`);
+  }
+  return declarations;
+}
+
+function componentDeclarations(properties) {
+  const declarations = colorDeclarations(properties);
+  const dimension = (key) => cssDimension(properties.get(key));
+  const typography = properties.get("typography");
+  if (typography?.type === "typography") {
+    declarations.push(...typographyDeclarations(typography));
+  }
+  for (const [key, property] of [
+    ["rounded", "border-radius"],
+    ["padding", "padding"],
+    ["height", "min-height"],
+    ["width", "min-width"],
+  ]) {
+    if (dimension(key)) {
+      declarations.push(`${property}: ${dimension(key)};`);
+    }
+  }
+  return declarations;
+}
+
+function renderComponents(components, rules) {
+  let index = 0;
   const items = [];
   for (const [name, component] of components) {
-    const rows = [...component.properties]
-      .map(
-        ([property, value]) =>
-          `<tr><th scope="row">${escapeHtml(property)}</th><td><code>${escapeHtml(describeValue(value))}</code></td></tr>`,
-      )
-      .join("");
-    items.push(
-      `<details open><summary>${escapeHtml(name)}</summary><table>${rows}</table></details>`,
+    const className = `component-${index}`;
+    index += 1;
+    rules.push(
+      `.${className} { ${componentDeclarations(component.properties).join(" ")} }`,
     );
+    const properties = propertyList(
+      [...component.properties].map(([property, value]) => [
+        property,
+        describeValue(value),
+      ]),
+    );
+    items.push(`<li class="component">
+  <div class="stage"><span class="component-sample ${className}">${escapeHtml(displayName(name))}</span></div>
+  <div class="component-meta"><strong>${escapeHtml(name)}</strong>${properties}</div>
+</li>`);
   }
-  return items.join("");
+  return items.length > 0
+    ? `<ul class="components">${items.join("")}</ul>`
+    : "";
 }
 
-function renderSummary({ errors, warnings, infos }) {
-  return `<p class="summary">
-  <span class="badge ${errors > 0 ? "fail" : "pass"}">${escapeHtml(localize("{0} errors", errors))}</span>
-  <span class="badge ${warnings > 0 ? "warn" : "pass"}">${escapeHtml(localize("{0} warnings", warnings))}</span>
-  <span class="badge">${escapeHtml(localize("{0} info", infos))}</span>
-</p>`;
+function lineOf(text, offset) {
+  let line = 1;
+  for (let index = 0; index < offset && index < text.length; index += 1) {
+    if (text[index] === "\n") {
+      line += 1;
+    }
+  }
+  return line;
 }
 
-function renderReport(report, summary, rules) {
+function severityLabel(severity) {
+  if (severity === "error") {
+    return localize("Error");
+  }
+  if (severity === "warning") {
+    return localize("Warning");
+  }
+  return localize("Info");
+}
+
+function renderCounts({ errors, warnings, infos }) {
+  const badges = [
+    errors > 0
+      ? `<span class="badge fail">${escapeHtml(localize("{0} errors", errors))}</span>`
+      : "",
+    warnings > 0
+      ? `<span class="badge warn">${escapeHtml(localize("{0} warnings", warnings))}</span>`
+      : "",
+    infos > 0
+      ? `<span class="badge info">${escapeHtml(localize("{0} info", infos))}</span>`
+      : "",
+  ].join("");
+  return badges ? ` <span class="counts">${badges}</span>` : "";
+}
+
+/**
+ * Lint results, shown at the bottom of the preview.
+ * @param {import("./analyze").Problem[]} problems
+ * @param {string} text Document content, to turn offsets into line numbers.
+ * @returns {string}
+ */
+function renderLintResults(problems, text) {
+  const count = (severity) =>
+    problems.filter((problem) => problem.severity === severity).length;
+  const summary = {
+    errors: count("error"),
+    infos: count("info"),
+    warnings: count("warning"),
+  };
+  const sorted = problems.toSorted(
+    (first, second) =>
+      SEVERITY_ORDER[first.severity] - SEVERITY_ORDER[second.severity] ||
+      first.start - second.start,
+  );
+  const body =
+    sorted.length > 0
+      ? `<ul class="problems">${sorted
+          .map(
+            (problem) =>
+              `<li><span class="badge ${SEVERITY_CLASS[problem.severity] ?? "info"}">${escapeHtml(severityLabel(problem.severity))}</span><span class="message">${escapeHtml(problem.message)}</span><span class="location">${escapeHtml(localize("Line {0}", lineOf(text, problem.start)))}</span></li>`,
+          )
+          .join("")}</ul>`
+      : `<p class="no-problems">${escapeHtml(localize("No problems found."))}</p>`;
+  return `<section class="card lint"><h2>${escapeHtml(localize("Lint results"))}${renderCounts(summary)}</h2>${body}</section>`;
+}
+
+function renderReport(report, rules, options) {
   const system = report.designSystem;
   return [
     `<header><h1>${escapeHtml(system.name ?? "DESIGN.md")}</h1>`,
     system.description
       ? `<p class="description">${escapeHtml(system.description)}</p>`
       : "",
-    renderSummary(summary),
     "</header>",
-    section(localize("Colors"), renderColors(system.colors, rules)),
-    section(localize("Typography"), renderTypography(system.typography, rules)),
-    section(localize("Spacing"), renderScale(system.spacing, "spacing", rules)),
-    section(localize("Rounded"), renderScale(system.rounded, "rounded", rules)),
-    section(localize("Components"), renderComponents(system.components)),
+    section(
+      localize("Colors"),
+      renderColors(system.colors, rules, options),
+      system.colors.size,
+    ),
+    section(
+      localize("Typography"),
+      renderTypography(system.typography, rules),
+      system.typography.size,
+    ),
+    section(
+      localize("Spacing"),
+      renderScale(system.spacing, "spacing", rules),
+      system.spacing.size,
+    ),
+    section(
+      localize("Rounded"),
+      renderScale(system.rounded, "rounded", rules),
+      system.rounded.size,
+    ),
+    section(
+      localize("Components"),
+      renderComponents(system.components, rules),
+      system.components.size,
+    ),
   ].join("\n");
+}
+
+function renderProse(text) {
+  const frontMatter = getFrontMatter(text);
+  const prose = markdown.render(
+    frontMatter ? text.slice(frontMatter.end) : text,
+  );
+  return prose.trim() ? `<section class="card prose">${prose}</section>` : "";
 }
 
 /**
@@ -198,8 +408,10 @@ function renderReport(report, summary, rules) {
  * @param {object} options
  * @param {string} options.text Raw document content.
  * @param {import("@google/design.md/linter").LintReport | null} options.report
- * @param {import("./analyze").Summary} [options.summary] Problem counts shown
- * in the header. Defaults to the linter's own summary.
+ * @param {import("./analyze").Problem[]} [options.problems] Lint problems
+ * listed at the bottom of the preview.
+ * @param {boolean} [options.contrastBadges] Show the on-white and on-black
+ * contrast badges under each color. Defaults to false.
  * @param {string} options.css Stylesheet contents.
  * @param {string} options.nonce CSP nonce for the inline stylesheet.
  * @param {string} options.cspSource Webview CSP source.
@@ -210,19 +422,16 @@ function renderReport(report, summary, rules) {
 function buildPreviewHtml({
   text,
   report,
-  summary,
+  problems = [],
+  contrastBadges = false,
   css,
   nonce,
   cspSource,
   lang = "en",
 }) {
   const rules = [];
-  const frontMatter = getFrontMatter(text);
-  const prose = markdown.render(
-    frontMatter ? text.slice(frontMatter.end) : text,
-  );
   const body = report
-    ? renderReport(report, summary ?? report.summary, rules)
+    ? renderReport(report, rules, { contrastBadges })
     : parseErrorHtml();
   return `<!DOCTYPE html>
 <html lang="${escapeHtml(lang)}">
@@ -239,7 +448,8 @@ ${rules.join("\n")}
 <body>
 <main>
 ${body}
-<section class="prose">${prose}</section>
+${renderProse(text)}
+${renderLintResults(problems, text)}
 </main>
 </body>
 </html>`;

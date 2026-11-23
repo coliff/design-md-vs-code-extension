@@ -8,5 +8,6 @@
   "command.fixSectionOrder": "Reihenfolge der Abschnitte korrigieren",
   "config.validate.enable": "DESIGN.md-Dateien mit dem offiziellen @google/design.md-Linter überprüfen.",
   "config.validate.contrastRatio": "Warnen, wenn das Kontrastverhältnis zwischen textColor und backgroundColor einer Komponente unter dem WCAG-AA-Wert von 4.5:1 liegt.",
-  "config.validate.debounceMs": "Verzögerung in Millisekunden vor der erneuten Überprüfung nach einer Bearbeitung."
+  "config.validate.debounceMs": "Verzögerung in Millisekunden vor der erneuten Überprüfung nach einer Bearbeitung.",
+  "config.preview.contrastBadges": "Zeigt in der DESIGN.md-Vorschau unter jedem Farbfeld Badges mit dem WCAG-Kontrastverhältnis auf Weiß und auf Schwarz an. Unabhängig von `#designMd.validate.contrastRatio#`, das Text- und Hintergrundfarben von Komponenten prüft."
 }

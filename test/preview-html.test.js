@@ -8,13 +8,16 @@ const { analyze } = require("../src/analyze");
 const { describeValue, parseHex, toHex } = require("../src/format");
 const { buildPreviewHtml, escapeHtml } = require("../src/preview-html");
 
-function render(text) {
+function render(text, options = {}) {
+  const { problems, report } = analyze(text);
   return buildPreviewHtml({
     cspSource: "vscode-resource:",
     css,
     nonce: "test-nonce",
-    report: analyze(text).report,
+    problems,
+    report,
     text,
+    ...options,
   });
 }
 
@@ -23,14 +26,48 @@ describe("buildPreviewHtml", () => {
     // #7071AF on white is 4.4968:1, just below AA.
     const html = render(
       '---\nname: Test\ncolors:\n  primary: "#7071AF"\n---\n',
+      { contrastBadges: true },
     );
     assert.match(html, /on white 4\.49 AA Large/u);
+  });
+
+  it("hides the swatch contrast badges by default", () => {
+    const html = render(
+      '---\nname: Test\ncolors:\n  primary: "#7071AF"\n---\n',
+    );
+    assert.doesNotMatch(html, /on white/u);
+    assert.doesNotMatch(html, /on black/u);
+  });
+
+  it("lists lint results after the prose and hides zero counts", () => {
+    const html = render(template);
+    assert.ok(html.indexOf("Lint results") > html.indexOf("Do's and Don'ts"));
+    assert.doesNotMatch(html, /0 errors|0 warnings|0 info/u);
+  });
+
+  it("lists each problem with its severity and line", () => {
+    const html = render('---\ncolors:\n  primary: "#1A73E8"\n---\n');
+    assert.match(
+      html,
+      /badge fail">Error<\/span><span class="message">Missing required &#39;name&#39;/u,
+    );
+    assert.match(html, /1 errors/u);
+    assert.match(html, /Line \d+/u);
+  });
+
+  it("previews components with their resolved styles", () => {
+    const html = render(template);
+    assert.match(html, /component-sample component-0">Button</u);
+    assert.match(
+      html,
+      /\.component-0 \{ background: #1a73e8; color: #ffffff;/iu,
+    );
   });
 
   it("renders tokens, prose and a nonce-locked CSP", () => {
     const html = render(template);
     assert.match(html, /<h1>My Design System<\/h1>/u);
-    assert.match(html, /\.color-0 \{ background: #1a73e8; \}/iu);
+    assert.match(html, /\.color-0 \{ background: #1a73e8; color: #000; \}/iu);
     assert.match(html, /<h2>Do's and Don'ts<\/h2>/u);
     assert.match(html, /style-src 'nonce-test-nonce'/u);
     assert.doesNotMatch(html, /<script/u);

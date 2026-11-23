@@ -17,7 +17,7 @@ A DESIGN.md file describes a design system: YAML front matter holds the design t
 - **Completions** for `{colors.primary}` style token references inside the front matter.
 - **Hovers** that show the resolved value of a token reference.
 - **Color swatches** and a color picker for every hex value under `colors`.
-- **Live preview** with color swatches and contrast ratios, typography samples, spacing and radius scales, components, and the rendered prose.
+- **Live preview** with color swatches, typography samples, spacing and radius scales, component previews, the rendered prose and the lint results.
 - **Markdown preview** shows the front matter as a table at the top, with color swatches for hex values, CSS colors, and `{colors.*}` references.
 - **Snippets** for front matter, tokens, components and the standard sections (type `design-`).
 - **New DESIGN.md File** command that creates a spec-valid starter file.
@@ -36,8 +36,9 @@ The extension activates for any markdown file named `DESIGN.md`.
 
 ## Settings
 
-| Setting                           | Default | Description                              |
-| --------------------------------- | ------- | ---------------------------------------- |
-| `designMd.validate.enable`        | `true`  | Validate DESIGN.md files                 |
-| `designMd.validate.contrastRatio` | `true`  | Warn about low-contrast component colors |
-| `designMd.validate.debounceMs`    | `300`   | Delay before re-validating after an edit |
+| Setting                           | Default | Description                                                                |
+| --------------------------------- | ------- | -------------------------------------------------------------------------- |
+| `designMd.validate.enable`        | `true`  | Validate DESIGN.md files                                                   |
+| `designMd.validate.contrastRatio` | `true`  | Warn about low-contrast component colors                                   |
+| `designMd.validate.debounceMs`    | `300`   | Delay before re-validating after an edit                                   |
+| `designMd.preview.contrastBadges` | `false` | Show on-white and on-black contrast badges under each color in the preview |

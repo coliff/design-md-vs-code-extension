@@ -2,6 +2,10 @@
 
 ## 1.0.3 - 2026-11-23
 
+- **Redesigned** the DESIGN.md preview: each section sits on its own card, colors show an "Aa" sample on the swatch, typography lists its properties next to the sample, and components render as a live preview built from their tokens.
+- **Lint results** now appear at the bottom of the preview, listing each problem with its severity and line. Error, warning and info counts are only shown when they are above zero.
+- **New setting** `designMd.preview.contrastBadges` shows the on-white and on-black contrast badges under each color swatch. It is off by default.
+- **Fixed** low contrast of token values such as hex codes in the DESIGN.md preview and the built-in Markdown preview.
 - **Fixed** low text contrast on the pass, warning and fail badges in the DESIGN.md preview. They now meet WCAG AA (4.5:1) in light and dark themes.
 - **Fixed** color swatches and nested tables not appearing in VS Code's built-in Markdown preview (Ctrl+Shift+V) for DESIGN.md files.
 - **Localization** in French, German, Italian, Japanese and Spanish for commands, settings, diagnostics, quick fixes, notifications and the preview. The extension follows VS Code's display language.
