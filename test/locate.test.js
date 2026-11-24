@@ -110,6 +110,29 @@ describe("findColorValues", () => {
       assert.equal(doc.slice(start, end), hex);
     }
   });
+
+  it("includes nested component colors but not keys or references", () => {
+    const text = [
+      "---",
+      "colors:",
+      "  primary: '#0c77be'",
+      "components:",
+      "  alert-primary:",
+      "    backgroundColor: '#dcedf9'",
+      '    textColor: "{colors.primary}"',
+      "  '#abc': plain",
+      "---",
+      "",
+    ].join("\n");
+    const colors = findColorValues(text);
+    assert.deepEqual(
+      colors.map(({ hex }) => hex),
+      ["#0c77be", "#dcedf9"],
+    );
+    for (const { start, end, hex } of colors) {
+      assert.equal(text.slice(start, end), hex);
+    }
+  });
 });
 
 describe("isInFrontMatter", () => {

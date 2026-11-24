@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4 - 2026-11-24
+
+- **Fixed** inline color swatches in the editor only appearing for `colors`. Hex values anywhere in the front matter, such as `components.alert-primary.backgroundColor`, now get a swatch and color picker.
+
 ## 1.0.3 - 2026-11-23
 
 - **Redesigned** the DESIGN.md preview: each section sits on its own card, colors show an "Aa" sample on the swatch, typography lists its properties next to the sample, and components render as a live preview built from their tokens.
