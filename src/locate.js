@@ -1,7 +1,7 @@
 "use strict";
 
 const MarkdownIt = require("markdown-it");
-const { isMap, isScalar, parseDocument } = require("yaml");
+const { isMap, isScalar, parseDocument, visit } = require("yaml");
 
 const FRONT_MATTER = /^---[ \t]*\r?\n(?<body>[\s\S]*?)^---[ \t]*$/mu;
 const REFERENCE = /\{(?<path>[\w-]+(?:\.[\w-]+)+)\}/gu;
@@ -277,7 +277,8 @@ function referenceAt(text, offset) {
 }
 
 /**
- * List hex color values defined under the `colors` key.
+ * List hex color values anywhere in the front matter, including nested
+ * component properties such as `components.button.backgroundColor`.
  * @param {string} text
  * @returns {Array<{ start: number, end: number, hex: string }>}
  */
@@ -287,28 +288,23 @@ function findColorValues(text) {
     return [];
   }
   const { doc, frontMatter } = parsed;
-  const colors = findPair(doc.contents, "colors");
-  if (!colors || !isMap(colors.value)) {
-    return [];
-  }
   const results = [];
-  for (const pair of colors.value.items) {
-    const { value } = pair;
-    if (
-      isScalar(value) &&
-      typeof value.value === "string" &&
-      HEX_COLOR.test(value.value)
-    ) {
-      const raw = frontMatter.body.slice(value.range[0], value.range[1]);
-      const offset = raw.indexOf(value.value);
-      const start = frontMatter.bodyStart + value.range[0] + offset;
-      results.push({
-        start,
-        end: start + value.value.length,
-        hex: value.value,
-      });
-    }
-  }
+  visit(doc, {
+    Scalar(key, node) {
+      if (
+        key === "key" ||
+        typeof node.value !== "string" ||
+        !HEX_COLOR.test(node.value) ||
+        !node.range
+      ) {
+        return;
+      }
+      const raw = frontMatter.body.slice(node.range[0], node.range[1]);
+      const start =
+        frontMatter.bodyStart + node.range[0] + raw.indexOf(node.value);
+      results.push({ start, end: start + node.value.length, hex: node.value });
+    },
+  });
   return results;
 }
 
