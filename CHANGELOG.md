@@ -2,6 +2,7 @@
 
 ## 1.0.4 - 2026-11-24
 
+- **Color swatch** in the hover for color token references such as `{colors.primary}`, shown next to the resolved hex value.
 - **Fixed** inline color swatches in the editor only appearing for `colors`. Hex values anywhere in the front matter, such as `components.alert-primary.backgroundColor`, now get a swatch and color picker.
 
 ## 1.0.3 - 2026-11-23

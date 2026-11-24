@@ -5,7 +5,12 @@ const { describe, it } = require("node:test");
 const css = require("../src/preview.css");
 const template = require("../src/template.md");
 const { analyze } = require("../src/analyze");
-const { describeValue, parseHex, toHex } = require("../src/format");
+const {
+  describeValue,
+  parseHex,
+  swatchDataUri,
+  toHex,
+} = require("../src/format");
 const { buildPreviewHtml, escapeHtml } = require("../src/preview-html");
 
 function render(text, options = {}) {
@@ -107,6 +112,15 @@ describe("format helpers", () => {
     assert.equal(toHex(parseHex("#1a73e8")), "#1A73E8");
     assert.equal(toHex(parseHex("#fff")), "#FFFFFF");
     assert.equal(toHex(parseHex("#00000080")), "#00000080");
+  });
+
+  it("builds an SVG swatch data URI for a hex color", () => {
+    const uri = swatchDataUri("#00000080");
+    assert.ok(uri.startsWith("data:image/svg+xml,"));
+    const svg = decodeURIComponent(uri.slice("data:image/svg+xml,".length));
+    assert.match(svg, /^<svg xmlns='http:\/\/www\.w3\.org\/2000\/svg'/u);
+    assert.match(svg, /fill='#00000080'/u);
+    assert.doesNotMatch(uri, /[\s#()]/u);
   });
 
   it("describes resolved values", () => {
