@@ -21,6 +21,13 @@ const HTML_ESCAPES = {
   ">": "&gt;",
 };
 const HEX_COLOR = /^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu;
+/*
+ * Hex, rgb() and hsl() colors in prose. The lookarounds skip parts of words,
+ * entities and paths such as "abc#fff" or "page#top-1".
+ */
+const PROSE_COLOR =
+  /(?<![\w#&/-])(?:#(?:[\da-f]{8}|[\da-f]{6}|[\da-f]{3,4})(?![\w-])|(?:rgba?|hsla?)\((?:[\d\s.,/%+-]|deg|g?rad|turn|none){1,60}\))/giu;
+const SWATCH_TOKEN = "design_md_color";
 
 function escapeHtml(value) {
   return String(value).replaceAll(/["&'<>]/gu, (char) => HTML_ESCAPES[char]);
@@ -395,11 +402,79 @@ function renderReport(report, rules, options) {
   ].join("\n");
 }
 
-function renderProse(text) {
+/**
+ * Split a text token so each color in it becomes a swatch token.
+ * @param {import("markdown-it").Token} token
+ * @param {import("markdown-it").StateCore} state
+ * @returns {import("markdown-it").Token[]}
+ */
+function splitColors(token, state) {
+  const tokens = [];
+  let last = 0;
+  for (const match of token.content.matchAll(PROSE_COLOR)) {
+    const text = new state.Token("text", "", 0);
+    text.content = token.content.slice(last, match.index);
+    const swatch = new state.Token(SWATCH_TOKEN, "", 0);
+    [swatch.content] = match;
+    tokens.push(text, swatch);
+    last = match.index + match[0].length;
+  }
+  if (last === 0) {
+    return [token];
+  }
+  const rest = new state.Token("text", "", 0);
+  rest.content = token.content.slice(last);
+  tokens.push(rest);
+  return tokens;
+}
+
+/**
+ * Add swatches to plain text, leaving code spans, code blocks and links
+ * (including linkified URLs) alone.
+ * @param {import("markdown-it").StateCore} state
+ */
+function addProseSwatches(state) {
+  for (const block of state.tokens) {
+    if (block.type === "inline" && block.children) {
+      let linkDepth = 0;
+      block.children = block.children.flatMap((token) => {
+        if (token.type === "link_open") {
+          linkDepth += 1;
+        } else if (token.type === "link_close") {
+          linkDepth -= 1;
+        }
+        return token.type === "text" && linkDepth === 0
+          ? splitColors(token, state)
+          : [token];
+      });
+    }
+  }
+}
+
+/**
+ * The preview CSP blocks inline styles, so each distinct color gets a class
+ * whose rule is added to the nonce-locked stylesheet.
+ */
+markdown.core.ruler.push("design_md_prose_swatches", addProseSwatches);
+markdown.renderer.rules[SWATCH_TOKEN] = (...args) => {
+  const [tokens, index, , env] = args;
+  const { content } = tokens[index];
+  if (!env.swatches.has(content)) {
+    env.swatches.set(content, `prose-color-${env.swatches.size}`);
+  }
+  return `<span class="prose-color"><span class="inline-swatch ${env.swatches.get(content)}" aria-hidden="true"></span>${escapeHtml(content)}</span>`;
+};
+
+function renderProse(text, rules) {
   const frontMatter = getFrontMatter(text);
+  const env = { swatches: new Map() };
   const prose = markdown.render(
     frontMatter ? text.slice(frontMatter.end) : text,
+    env,
   );
+  for (const [color, className] of env.swatches) {
+    rules.push(`.${className} { background: ${color}; }`);
+  }
   return prose.trim() ? `<section class="card prose">${prose}</section>` : "";
 }
 
@@ -433,6 +508,7 @@ function buildPreviewHtml({
   const body = report
     ? renderReport(report, rules, { contrastBadges })
     : parseErrorHtml();
+  const prose = renderProse(text, rules);
   return `<!DOCTYPE html>
 <html lang="${escapeHtml(lang)}">
 <head>
@@ -448,7 +524,7 @@ ${rules.join("\n")}
 <body>
 <main>
 ${body}
-${renderProse(text)}
+${prose}
 ${renderLintResults(problems, text)}
 </main>
 </body>
