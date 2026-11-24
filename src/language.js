@@ -2,7 +2,7 @@
 
 const vscode = require("vscode");
 const { analyze } = require("./analyze");
-const { describeValue, parseHex, toHex } = require("./format");
+const { describeValue, parseHex, swatchDataUri, toHex } = require("./format");
 const { nameInsertionPoint } = require("./frontmatter-rules");
 const { findColorValues, isInFrontMatter, referenceAt } = require("./locate");
 
@@ -71,7 +71,13 @@ const hoverProvider = {
       );
     } else {
       markdown.appendMarkdown(`**${reference.path}**\n\n`);
-      markdown.appendCodeblock(describeValue(value), "text");
+      if (value?.type === "color") {
+        markdown.appendMarkdown(
+          `![${value.hex}](${swatchDataUri(value.hex)}) \`${value.hex}\``,
+        );
+      } else {
+        markdown.appendCodeblock(describeValue(value), "text");
+      }
     }
     const range = new vscode.Range(
       document.positionAt(reference.start),

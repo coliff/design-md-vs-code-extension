@@ -71,4 +71,22 @@ function toHex(color) {
   return `#${part(color.red)}${part(color.green)}${part(color.blue)}${alpha}`;
 }
 
-module.exports = { describeValue, formatDimension, parseHex, toHex };
+/**
+ * A small rounded square filled with the color, as an SVG data URI for use as
+ * a Markdown image in hovers. The faint outline keeps white and black swatches
+ * visible on light and dark themes.
+ * @param {string} hex
+ * @returns {string}
+ */
+function swatchDataUri(hex) {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14'><rect x='0.5' y='0.5' width='13' height='13' rx='3' fill='${hex}' stroke='#8888' /></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+module.exports = {
+  describeValue,
+  formatDimension,
+  parseHex,
+  swatchDataUri,
+  toHex,
+};
