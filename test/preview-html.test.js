@@ -79,6 +79,44 @@ describe("buildPreviewHtml", () => {
     assert.doesNotMatch(html, /style="/u);
   });
 
+  it("adds swatches to colors in the prose", () => {
+    const html = render(
+      "# Title\n\nStrictly white (#FFFFFF) or silver (#E2E8F0), not rgb(0, 0, 0) or hsl(210 40% 96% / 0.5). Also #fff and #FFFFFF.\n",
+    );
+    assert.match(
+      html,
+      /\(<span class="prose-color"><span class="inline-swatch prose-color-0" aria-hidden="true"><\/span>#FFFFFF<\/span>\)/u,
+    );
+    assert.match(html, /\.prose-color-0 \{ background: #FFFFFF; \}/u);
+    assert.match(html, /\.prose-color-1 \{ background: #E2E8F0; \}/u);
+    assert.match(html, /\.prose-color-2 \{ background: rgb\(0, 0, 0\); \}/u);
+    assert.match(
+      html,
+      /\.prose-color-3 \{ background: hsl\(210 40% 96% \/ 0\.5\); \}/u,
+    );
+    assert.match(html, /\.prose-color-4 \{ background: #fff; \}/u);
+    // A repeated color reuses its class.
+    assert.doesNotMatch(html, /prose-color-5/u);
+    assert.doesNotMatch(html, /style="/u);
+  });
+
+  it("skips colors in code, links and other words", () => {
+    const html = render(
+      [
+        "# Title",
+        "",
+        "Inline `#123456` and [#abcdef](https://example.com/#fedcba).",
+        "See https://example.com/page#beef or abc#fff, #12345, #fffg and #ff-ff.",
+        "",
+        "```css",
+        "color: #ff0000;",
+        "```",
+        "",
+      ].join("\n"),
+    );
+    assert.doesNotMatch(html, /class="inline-swatch/u);
+  });
+
   it("escapes HTML in token names and prose", () => {
     const text = template
       .replace("name: My Design System", 'name: "<img src=x onerror=alert(1)>"')

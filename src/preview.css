@@ -368,6 +368,20 @@ code {
   padding: 1px 4px;
 }
 
+.prose-color {
+  white-space: nowrap;
+}
+
+.inline-swatch {
+  border: 1px solid var(--card-border);
+  border-radius: 3px;
+  display: inline-block;
+  height: 0.8em;
+  margin-right: 0.25em;
+  vertical-align: -0.05em;
+  width: 0.8em;
+}
+
 .problems li:first-child {
   padding-top: 0;
 }

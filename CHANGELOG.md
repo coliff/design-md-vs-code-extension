@@ -3,6 +3,7 @@
 ## 1.0.4 - 2026-11-24
 
 - **Color swatch** in the hover for color token references such as `{colors.primary}`, shown next to the resolved hex value.
+- **Color swatches** in the DESIGN.md preview's prose. Hex, `rgb()` and `hsl()` colors written in the Markdown body, such as "Strictly white (#FFFFFF)", now show a small swatch. Code spans, code blocks and links are left as they are.
 - **Fixed** inline color swatches in the editor only appearing for `colors`. Hex values anywhere in the front matter, such as `components.alert-primary.backgroundColor`, now get a swatch and color picker.
 
 ## 1.0.3 - 2026-11-23
