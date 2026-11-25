@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.5 - 2026-11-25
+
+- **Fixed** duplicate, out-of-date problems in the Problems panel for DESIGN.md files under Git. The copies VS Code opens for diffs and change markers in the gutter are no longer linted.
+- **Fixed** Fix Section Order adding an extra blank line at the end of files with Windows (CRLF) line endings.
+- **Fixed** the lint result counts in the preview reading "1 errors" or "1 warnings" when there is a single problem.
+
 ## 1.0.4 - 2026-11-24
 
 - **Color swatch** in the hover for color token references such as `{colors.primary}`, shown next to the resolved hex value.

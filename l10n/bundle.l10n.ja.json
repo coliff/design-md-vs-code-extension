@@ -1,4 +1,7 @@
 {
+  "1 error": "1 件のエラー",
+  "1 info": "1 件の情報",
+  "1 warning": "1 件の警告",
   "Add 'name' to the front matter": "フロントマターに 'name' を追加する",
   "Colors": "カラー",
   "Components": "コンポーネント",

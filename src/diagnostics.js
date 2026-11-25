@@ -1,7 +1,7 @@
 "use strict";
 
 const vscode = require("vscode");
-const { analyze, isDesignDocument } = require("./analyze");
+const { analyze, isLintableDocument } = require("./analyze");
 
 const SEVERITY = {
   error: vscode.DiagnosticSeverity.Error,
@@ -55,7 +55,7 @@ function registerDiagnostics(context) {
   const timers = new Map();
 
   function validate(document) {
-    if (!isDesignDocument(document)) {
+    if (!isLintableDocument(document)) {
       return;
     }
     if (!getConfig().enable) {
@@ -66,7 +66,7 @@ function registerDiagnostics(context) {
   }
 
   function schedule(document) {
-    if (!isDesignDocument(document)) {
+    if (!isLintableDocument(document)) {
       return;
     }
     const key = document.uri.toString();

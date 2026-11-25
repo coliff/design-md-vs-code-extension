@@ -139,18 +139,27 @@ function runLint(text) {
  * @returns {string | null} The fixed content, or null if nothing can be fixed.
  */
 function fixSectionOrderText(text) {
-  const { report } = analyze(text);
+  /*
+   * The linter splits sections on "\n" and joins them with "\n", so CRLF
+   * content would come back with mixed line endings. Fix it as LF and restore
+   * the document's line endings afterwards.
+   */
+  const eol = text.includes("\r\n") ? "\r\n" : "\n";
+  const content = eol === "\n" ? text : text.replaceAll("\r\n", "\n");
+  const { report } = analyze(content);
   if (!report) {
     return null;
   }
   const result = getLinter().fixSectionOrder({
-    content: text,
+    content,
     sections: report.documentSections,
   });
-  if (!result.success || result.fixedContent === text) {
+  if (!result.success || result.fixedContent === content) {
     return null;
   }
-  return result.fixedContent;
+  return eol === "\n"
+    ? result.fixedContent
+    : result.fixedContent.replaceAll("\n", eol);
 }
 
 /**
@@ -165,4 +174,27 @@ function isDesignDocument(document) {
   );
 }
 
-module.exports = { analyze, fixSectionOrderText, isDesignDocument };
+/*
+ * Schemes whose documents are the user's own files. Others, such as the `git:`
+ * copies VS Code opens for diffs and gutter indicators, would add a second,
+ * stale set of problems to the Problems panel.
+ */
+const LINTABLE_SCHEMES = new Set(["file", "untitled", "vscode-remote"]);
+
+/**
+ * Whether a DESIGN.md document should get diagnostics.
+ * @param {{ languageId: string, fileName: string, uri: { scheme: string } }} document
+ * @returns {boolean}
+ */
+function isLintableDocument(document) {
+  return (
+    LINTABLE_SCHEMES.has(document.uri.scheme) && isDesignDocument(document)
+  );
+}
+
+module.exports = {
+  analyze,
+  fixSectionOrderText,
+  isDesignDocument,
+  isLintableDocument,
+};
