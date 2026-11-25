@@ -24,6 +24,12 @@ A DESIGN.md file describes a design system: YAML front matter holds the design t
 
 The extension activates for any markdown file named `DESIGN.md`.
 
+### Rich Markdown Editor
+
+VS Code's rich **Markdown Editor** (the editable view with a formatting toolbar) uses its own renderer, which extensions can't add to. In that view the front matter appears as plain text without swatches.
+To see the swatches, use `DESIGN.md: Open Preview to the Side` (the preview button in the editor title bar) or the regular Markdown preview (`Ctrl+Shift+V` / `Cmd+Shift+V`).
+To open the file as text again, run **View: Reopen Editor With...** and choose **Text Editor**.
+
 ## Commands
 
 | Command                               | Description                                         |
