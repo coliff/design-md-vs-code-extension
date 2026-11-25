@@ -320,17 +320,32 @@ function severityLabel(severity) {
   return localize("Info");
 }
 
+function countBadge(className, count, label) {
+  return count > 0
+    ? `<span class="badge ${className}">${escapeHtml(label)}</span>`
+    : "";
+}
+
 function renderCounts({ errors, warnings, infos }) {
+  // Literal strings in each call keep the l10n bundle keys easy to find.
   const badges = [
-    errors > 0
-      ? `<span class="badge fail">${escapeHtml(localize("{0} errors", errors))}</span>`
-      : "",
-    warnings > 0
-      ? `<span class="badge warn">${escapeHtml(localize("{0} warnings", warnings))}</span>`
-      : "",
-    infos > 0
-      ? `<span class="badge info">${escapeHtml(localize("{0} info", infos))}</span>`
-      : "",
+    countBadge(
+      "fail",
+      errors,
+      errors === 1 ? localize("1 error") : localize("{0} errors", errors),
+    ),
+    countBadge(
+      "warn",
+      warnings,
+      warnings === 1
+        ? localize("1 warning")
+        : localize("{0} warnings", warnings),
+    ),
+    countBadge(
+      "info",
+      infos,
+      infos === 1 ? localize("1 info") : localize("{0} info", infos),
+    ),
   ].join("");
   return badges ? ` <span class="counts">${badges}</span>` : "";
 }

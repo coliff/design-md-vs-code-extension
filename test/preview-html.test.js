@@ -56,7 +56,7 @@ describe("buildPreviewHtml", () => {
       html,
       /badge fail">Error<\/span><span class="message">Missing required &#39;name&#39;/u,
     );
-    assert.match(html, /1 errors/u);
+    assert.match(html, />1 error</u);
     assert.match(html, /Line \d+/u);
   });
 

@@ -1,7 +1,7 @@
 {
   "name": "design-md-vs-code-extension",
   "displayName": "%displayName%",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "private": true,
   "repository": {
     "type": "git",

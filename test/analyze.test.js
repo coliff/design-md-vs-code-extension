@@ -9,6 +9,7 @@ const {
   analyze,
   fixSectionOrderText,
   isDesignDocument,
+  isLintableDocument,
 } = require("../src/analyze");
 
 const broken = fs.readFileSync(
@@ -218,6 +219,13 @@ describe("fixSectionOrderText", () => {
   it("returns null when sections are already in order", () => {
     assert.equal(fixSectionOrderText(template), null);
   });
+
+  it("keeps CRLF line endings when reordering", () => {
+    const crlf = broken.replaceAll("\n", "\r\n");
+    const fixed = fixSectionOrderText(crlf);
+    assert.equal(fixed, fixSectionOrderText(broken).replaceAll("\n", "\r\n"));
+    assert.doesNotMatch(fixed, /\r(?!\n)|(?<!\r)\n/u);
+  });
 });
 
 describe("isDesignDocument", () => {
@@ -244,5 +252,22 @@ describe("isDesignDocument", () => {
       }),
       false,
     );
+  });
+});
+
+describe("isLintableDocument", () => {
+  const document = (scheme) => ({
+    fileName: "/repo/DESIGN.md",
+    languageId: "markdown",
+    uri: { scheme },
+  });
+
+  it("lints files on disk and untitled files", () => {
+    assert.equal(isLintableDocument(document("file")), true);
+    assert.equal(isLintableDocument(document("untitled")), true);
+  });
+
+  it("skips the git copies VS Code opens for diffs", () => {
+    assert.equal(isLintableDocument(document("git")), false);
   });
 });
