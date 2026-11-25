@@ -1,6 +1,6 @@
 {
   "1 error": "1 error",
-  "1 info": "1 info",
+  "1 info message": "1 info message",
   "1 warning": "1 warning",
   "Add 'name' to the front matter": "Add 'name' to the front matter",
   "Colors": "Colors",
@@ -30,6 +30,6 @@
   "Unresolved reference `{0}`": "Unresolved reference `{0}`",
   "Warning": "Warning",
   "{0} errors": "{0} errors",
-  "{0} info": "{0} info",
+  "{0} info messages": "{0} info messages",
   "{0} warnings": "{0} warnings"
 }

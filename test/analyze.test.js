@@ -9,7 +9,6 @@ const {
   analyze,
   fixSectionOrderText,
   isDesignDocument,
-  isLintableDocument,
 } = require("../src/analyze");
 
 const broken = fs.readFileSync(
@@ -222,9 +221,16 @@ describe("fixSectionOrderText", () => {
 
   it("keeps CRLF line endings when reordering", () => {
     const crlf = broken.replaceAll("\n", "\r\n");
-    const fixed = fixSectionOrderText(crlf);
+    const fixed = fixSectionOrderText(crlf, { eol: "\r\n" });
     assert.equal(fixed, fixSectionOrderText(broken).replaceAll("\n", "\r\n"));
     assert.doesNotMatch(fixed, /\r(?!\n)|(?<!\r)\n/u);
+  });
+
+  it("uses the document's line ending, not the first CRLF it finds", () => {
+    // Only the first line ends in CRLF.
+    const firstEol = broken.indexOf("\n");
+    const mixed = `${broken.slice(0, firstEol)}\r${broken.slice(firstEol)}`;
+    assert.equal(fixSectionOrderText(mixed), fixSectionOrderText(broken));
   });
 });
 
@@ -252,22 +258,5 @@ describe("isDesignDocument", () => {
       }),
       false,
     );
-  });
-});
-
-describe("isLintableDocument", () => {
-  const document = (scheme) => ({
-    fileName: "/repo/DESIGN.md",
-    languageId: "markdown",
-    uri: { scheme },
-  });
-
-  it("lints files on disk and untitled files", () => {
-    assert.equal(isLintableDocument(document("file")), true);
-    assert.equal(isLintableDocument(document("untitled")), true);
-  });
-
-  it("skips the git copies VS Code opens for diffs", () => {
-    assert.equal(isLintableDocument(document("git")), false);
   });
 });

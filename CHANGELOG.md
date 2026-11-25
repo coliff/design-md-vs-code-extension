@@ -4,7 +4,7 @@
 
 - **Fixed** duplicate, out-of-date problems in the Problems panel for DESIGN.md files under Git. The copies VS Code opens for diffs and change markers in the gutter are no longer linted.
 - **Fixed** Fix Section Order adding an extra blank line at the end of files with Windows (CRLF) line endings.
-- **Fixed** the lint result counts in the preview reading "1 errors" or "1 warnings" when there is a single problem.
+- **Fixed** the lint result counts in the preview reading "1 errors", "1 warnings" or "2 info". They now say "1 error", "1 warning" and "2 info messages".
 
 ## 1.0.4 - 2026-11-24
 

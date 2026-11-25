@@ -1,6 +1,6 @@
 {
   "1 error": "1 件のエラー",
-  "1 info": "1 件の情報",
+  "1 info message": "1 件の情報",
   "1 warning": "1 件の警告",
   "Add 'name' to the front matter": "フロントマターに 'name' を追加する",
   "Colors": "カラー",
@@ -30,6 +30,6 @@
   "Unresolved reference `{0}`": "未解決の参照 `{0}`",
   "Warning": "警告",
   "{0} errors": "{0} 件のエラー",
-  "{0} info": "{0} 件の情報",
+  "{0} info messages": "{0} 件の情報",
   "{0} warnings": "{0} 件の警告"
 }

@@ -136,16 +136,18 @@ function runLint(text) {
 /**
  * Reorder the markdown sections into the spec's canonical order.
  * @param {string} text
+ * @param {object} [options]
+ * @param {"\n" | "\r\n"} [options.eol] The document's line ending, used for
+ * every line of the result. Defaults to "\n".
  * @returns {string | null} The fixed content, or null if nothing can be fixed.
  */
-function fixSectionOrderText(text) {
+function fixSectionOrderText(text, { eol = "\n" } = {}) {
   /*
    * The linter splits sections on "\n" and joins them with "\n", so CRLF
-   * content would come back with mixed line endings. Fix it as LF and restore
-   * the document's line endings afterwards.
+   * content would come back with mixed line endings. Fix it as LF and write
+   * the document's own line ending back afterwards.
    */
-  const eol = text.includes("\r\n") ? "\r\n" : "\n";
-  const content = eol === "\n" ? text : text.replaceAll("\r\n", "\n");
+  const content = text.replaceAll("\r\n", "\n");
   const { report } = analyze(content);
   if (!report) {
     return null;
@@ -175,11 +177,17 @@ function isDesignDocument(document) {
 }
 
 /*
- * Schemes whose documents are the user's own files. Others, such as the `git:`
+ * Schemes whose documents are the user's own files, including GitHub
+ * repositories opened with Remote Repositories (`vscode-vfs`). Others, such as the `git:`
  * copies VS Code opens for diffs and gutter indicators, would add a second,
  * stale set of problems to the Problems panel.
  */
-const LINTABLE_SCHEMES = new Set(["file", "untitled", "vscode-remote"]);
+const LINTABLE_SCHEMES = new Set([
+  "file",
+  "untitled",
+  "vscode-remote",
+  "vscode-vfs",
+]);
 
 /**
  * Whether a DESIGN.md document should get diagnostics.

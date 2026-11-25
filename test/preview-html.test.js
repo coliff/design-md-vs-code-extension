@@ -60,6 +60,36 @@ describe("buildPreviewHtml", () => {
     assert.match(html, /Line \d+/u);
   });
 
+  it("uses singular and plural wording in the lint counts", () => {
+    const problem = (severity) => ({
+      end: 3,
+      message: "Problem",
+      severity,
+      start: 0,
+    });
+    const counts = (problems) =>
+      render(template, { problems }).match(
+        /<span class="counts">(?<badges>.*?)<\/span><\/h2>/u,
+      ).groups.badges;
+    const single = counts([
+      problem("error"),
+      problem("warning"),
+      problem("info"),
+    ]);
+    assert.match(single, />1 error</u);
+    assert.match(single, />1 warning</u);
+    assert.match(single, />1 info message</u);
+    const several = counts(
+      ["error", "warning", "info"].flatMap((severity) => [
+        problem(severity),
+        problem(severity),
+      ]),
+    );
+    assert.match(several, />2 errors</u);
+    assert.match(several, />2 warnings</u);
+    assert.match(several, />2 info messages</u);
+  });
+
   it("previews components with their resolved styles", () => {
     const html = render(template);
     assert.match(html, /component-sample component-0">Button</u);
