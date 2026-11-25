@@ -344,7 +344,9 @@ function renderCounts({ errors, warnings, infos }) {
     countBadge(
       "info",
       infos,
-      infos === 1 ? localize("1 info") : localize("{0} info", infos),
+      infos === 1
+        ? localize("1 info message")
+        : localize("{0} info messages", infos),
     ),
   ].join("");
   return badges ? ` <span class="counts">${badges}</span>` : "";

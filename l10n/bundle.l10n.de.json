@@ -1,6 +1,6 @@
 {
   "1 error": "1 Fehler",
-  "1 info": "1 Information",
+  "1 info message": "1 Information",
   "1 warning": "1 Warnung",
   "Add 'name' to the front matter": "„name“ zum Front Matter hinzufügen",
   "Colors": "Farben",
@@ -30,6 +30,6 @@
   "Unresolved reference `{0}`": "Nicht aufgelöster Verweis `{0}`",
   "Warning": "Warnung",
   "{0} errors": "{0} Fehler",
-  "{0} info": "{0} Informationen",
+  "{0} info messages": "{0} Informationen",
   "{0} warnings": "{0} Warnungen"
 }

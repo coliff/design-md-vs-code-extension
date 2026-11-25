@@ -60,7 +60,9 @@ async function fixSectionOrderCommand(uri) {
   if (!document) {
     return;
   }
-  const fixed = fixSectionOrderText(document.getText());
+  const fixed = fixSectionOrderText(document.getText(), {
+    eol: document.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n",
+  });
   if (fixed === null) {
     vscode.window.showInformationMessage(
       vscode.l10n.t("Sections are already in order."),
