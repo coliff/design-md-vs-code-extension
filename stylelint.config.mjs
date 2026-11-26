@@ -58,6 +58,6 @@ export default {
       true,
       { ignore: ["at-rule-preludes", "declaration-values"] },
     ],
-    "syntax-string-no-invalid": true
+    "syntax-string-no-invalid": true,
   },
 };
