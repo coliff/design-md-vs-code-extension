@@ -3,8 +3,13 @@
 ## 1.0.5 - 2026-11-25
 
 - **Fixed** duplicate, out-of-date problems in the Problems panel for DESIGN.md files under Git. The copies VS Code opens for diffs and change markers in the gutter are no longer linted.
-- **Fixed** Fix Section Order adding an extra blank line at the end of files with Windows (CRLF) line endings.
+- **Fixed** **Fix Section Order** adding an extra blank line at the end of files with Windows (CRLF) line endings.
+- **Fixed** **Fix Section Order** attempting to edit read-only `git:` copies of DESIGN.md instead of warning the user to open the workspace file.
+- **Fixed** **New DESIGN.md File** treating every `workspace.fs.stat` failure as “file missing”, which could try to overwrite when the path was actually inaccessible.
 - **Fixed** the lint result counts in the preview reading "1 errors", "1 warnings" or "2 info". They now say "1 error", "1 warning" and "2 info messages".
+- **Fixed** validation for DESIGN.md files opened from Remote Repositories (`vscode-vfs` URIs) so they are linted again in the Problems panel.
+- **Fixed** **Validate DESIGN.md** opening an empty Problems panel without any message when the active editor shows a read-only `git:` copy of the file (for example from the diff or Timeline views).
+- **Fixed** **Validate DESIGN.md** opening the Problems panel when validation is turned off in settings, without explaining why no DESIGN.md diagnostics appear.
 
 ## 1.0.4 - 2026-11-24
 

@@ -2,7 +2,12 @@
 
 const vscode = require("vscode");
 const template = require("./template.md");
-const { fixSectionOrderText, isDesignDocument } = require("./analyze");
+const {
+  fixSectionOrderText,
+  isDesignDocument,
+  isLintableDocument,
+} = require("./analyze");
+const { getConfig } = require("./diagnostics");
 
 /**
  * Resolve the DESIGN.md document a command should act on.
@@ -16,6 +21,27 @@ async function resolveDocument(uri) {
   if (!document || !isDesignDocument(document)) {
     vscode.window.showWarningMessage(
       vscode.l10n.t("Open a DESIGN.md file first."),
+    );
+    return undefined;
+  }
+  return document;
+}
+
+/**
+ * Resolve a DESIGN.md document that can be validated or edited on disk.
+ * @param {vscode.Uri | undefined} uri
+ * @returns {Promise<vscode.TextDocument | undefined>}
+ */
+async function resolveLintableDocument(uri) {
+  const document = await resolveDocument(uri);
+  if (!document) {
+    return undefined;
+  }
+  if (!isLintableDocument(document)) {
+    vscode.window.showWarningMessage(
+      vscode.l10n.t(
+        "This copy of DESIGN.md is read-only. Open the file from your workspace to validate or edit it.",
+      ),
     );
     return undefined;
   }
@@ -46,17 +72,28 @@ async function createDesignFile() {
     vscode.window.showInformationMessage(
       vscode.l10n.t("DESIGN.md already exists."),
     );
-  } catch {
-    await vscode.workspace.fs.writeFile(
-      target,
-      new TextEncoder().encode(template),
-    );
+  } catch (error) {
+    if (
+      error instanceof vscode.FileSystemError &&
+      error.code === "FileNotFound"
+    ) {
+      await vscode.workspace.fs.writeFile(
+        target,
+        new TextEncoder().encode(template),
+      );
+    } else {
+      const message = error instanceof Error ? error.message : String(error);
+      vscode.window.showErrorMessage(
+        vscode.l10n.t("Could not access DESIGN.md: {0}", message),
+      );
+      return;
+    }
   }
   await vscode.window.showTextDocument(target);
 }
 
 async function fixSectionOrderCommand(uri) {
-  const document = await resolveDocument(uri);
+  const document = await resolveLintableDocument(uri);
   if (!document) {
     return;
   }
@@ -102,11 +139,20 @@ function registerCommands(context, { diagnostics, preview }) {
       openPreview(vscode.ViewColumn.Beside),
     ),
     vscode.commands.registerCommand("designMd.validate", async (uri) => {
-      const document = await resolveDocument(uri);
-      if (document) {
-        diagnostics.validate(document);
-        await vscode.commands.executeCommand("workbench.actions.view.problems");
+      const document = await resolveLintableDocument(uri);
+      if (!document) {
+        return;
       }
+      if (!getConfig().enable) {
+        vscode.window.showInformationMessage(
+          vscode.l10n.t(
+            "Validation is disabled. Enable designMd.validate.enable in Settings.",
+          ),
+        );
+        return;
+      }
+      diagnostics.validate(document);
+      await vscode.commands.executeCommand("workbench.actions.view.problems");
     }),
     vscode.commands.registerCommand("designMd.new", createDesignFile),
     vscode.commands.registerCommand(
