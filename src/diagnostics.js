@@ -80,12 +80,14 @@ function registerDiagnostics(context) {
     );
   }
 
+  // Saving fires a change event with no edits, so there is nothing to re-check.
+  const scheduleEdited = (event) =>
+    event.contentChanges.length > 0 && schedule(event.document);
+
   context.subscriptions.push(
     collection,
     vscode.workspace.onDidOpenTextDocument(validate),
-    vscode.workspace.onDidChangeTextDocument((event) =>
-      schedule(event.document),
-    ),
+    vscode.workspace.onDidChangeTextDocument(scheduleEdited),
     vscode.workspace.onDidCloseTextDocument((document) => {
       // A pending debounced run would otherwise re-add diagnostics after close.
       const key = document.uri.toString();

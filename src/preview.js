@@ -18,9 +18,12 @@ class PreviewManager {
     /** @type {Map<string, { panel: vscode.WebviewPanel, timer?: NodeJS.Timeout }>} */
     this.previews = new Map();
     this.subscriptions = [
-      vscode.workspace.onDidChangeTextDocument((event) =>
-        this.scheduleRefresh(event.document),
-      ),
+      vscode.workspace.onDidChangeTextDocument((event) => {
+        // Saving fires a change event with no edits; skip the reload.
+        if (event.contentChanges.length > 0) {
+          this.scheduleRefresh(event.document);
+        }
+      }),
       vscode.workspace.onDidChangeConfiguration((event) => {
         if (
           event.affectsConfiguration("designMd.validate") ||
@@ -93,9 +96,8 @@ class PreviewManager {
   // eslint-disable-next-line class-methods-use-this
   render(document, panel) {
     const text = document.getText();
-    const { problems, report } = analyze(text, {
-      contrastRatio: getConfig().contrastRatio,
-    });
+    const { contrastRatio, enable } = getConfig();
+    const { problems, report } = analyze(text, { contrastRatio });
     panel.webview.html = buildPreviewHtml({
       contrastBadges: vscode.workspace
         .getConfiguration("designMd.preview")
@@ -106,6 +108,7 @@ class PreviewManager {
       nonce: crypto.randomBytes(16).toString("base64"),
       problems,
       report,
+      showLintResults: enable,
       text,
     });
   }
