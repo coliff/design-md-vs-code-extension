@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.6 - 2026-11-27
+
+- **Fixed** the color picker turning lowercase hex values such as `#1a73e8` into uppercase. It now keeps the case the value was written in.
+- **Fixed** hovers showing "Unresolved reference" for braces in the Markdown body that aren't tokens, such as `{user.name}` in a code sample. References in the body that resolve to a token still show their value.
+- **Fixed** the DESIGN.md preview listing lint results when validation is turned off with `designMd.validate.enable`.
+- **Fixed** the DESIGN.md preview reloading, and validation re-running, every time the file is saved even though nothing changed.
+- **Renamed** `CONTRIBUTNG.md` to `CONTRIBUTING.md` so GitHub links to it, and left it out of the packaged extension.
+
 ## 1.0.5 - 2026-11-25
 
 - **Fixed** duplicate, out-of-date problems in the Problems panel for DESIGN.md files under Git. The copies VS Code opens for diffs and change markers in the gutter are no longer linted.

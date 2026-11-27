@@ -27,6 +27,7 @@ test/**
 **/*.yml
 **/*.zip
 **/AGENTS.md
+**/CONTRIBUTING.md
 **/esbuild.config.mjs
 **/eslint.config.js
 **/stylelint.config.mjs

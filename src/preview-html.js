@@ -502,6 +502,8 @@ function renderProse(text, rules) {
  * @param {import("@google/design.md/linter").LintReport | null} options.report
  * @param {import("./analyze").Problem[]} [options.problems] Lint problems
  * listed at the bottom of the preview.
+ * @param {boolean} [options.showLintResults] List the lint results at the
+ * bottom. Off when validation is disabled in settings. Defaults to true.
  * @param {boolean} [options.contrastBadges] Show the on-white and on-black
  * contrast badges under each color. Defaults to false.
  * @param {string} options.css Stylesheet contents.
@@ -515,6 +517,7 @@ function buildPreviewHtml({
   text,
   report,
   problems = [],
+  showLintResults = true,
   contrastBadges = false,
   css,
   nonce,
@@ -542,7 +545,7 @@ ${rules.join("\n")}
 <main>
 ${body}
 ${prose}
-${renderLintResults(problems, text)}
+${showLintResults ? renderLintResults(problems, text) : ""}
 </main>
 </body>
 </html>`;

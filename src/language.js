@@ -56,14 +56,20 @@ const completionProvider = {
 
 const hoverProvider = {
   provideHover(document, position) {
-    const reference = referenceAt(
-      document.getText(),
-      document.offsetAt(position),
-    );
+    const text = document.getText();
+    const reference = referenceAt(text, document.offsetAt(position));
     if (!reference) {
       return undefined;
     }
     const value = symbolTableFor(document).get(reference.path);
+    /*
+     * Only the front matter holds token references. In the Markdown body,
+     * braces like `{user.name}` in a code sample are not tokens, so only
+     * references that resolve get a hover there.
+     */
+    if (value === undefined && !isInFrontMatter(text, reference.start)) {
+      return undefined;
+    }
     const markdown = new vscode.MarkdownString();
     if (value === undefined) {
       markdown.appendMarkdown(
@@ -88,8 +94,17 @@ const hoverProvider = {
 };
 
 const colorProvider = {
-  provideColorPresentations(color) {
-    return [new vscode.ColorPresentation(toHex(color))];
+  provideColorPresentations(color, { document, range }) {
+    // Keep the case the value was written in, e.g. `#1a73e8` stays lowercase.
+    const original = document.getText(range);
+    const hex = toHex(color);
+    return [
+      new vscode.ColorPresentation(
+        /[a-f]/u.test(original) && !/[A-F]/u.test(original)
+          ? hex.toLowerCase()
+          : hex,
+      ),
+    ];
   },
   provideDocumentColors(document) {
     return findColorValues(document.getText()).map(({ start, end, hex }) => {

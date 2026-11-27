@@ -23,6 +23,9 @@ const api = {
     constructor(title, kind) { Object.assign(this, { kind, title }); }
   },
   CodeActionKind: { QuickFix: "quickfix" },
+  ColorPresentation: class {
+    constructor(label) { this.label = label; }
+  },
   Hover: class {
     constructor(contents, range) { Object.assign(this, { contents, range }); }
   },
@@ -52,6 +55,7 @@ const api = {
     get: (_target, property) => {
       const name = {
         registerCodeActionsProvider: "codeActionProvider",
+        registerColorProvider: "colorProvider",
         registerHoverProvider: "hoverProvider",
       }[property];
       return name
@@ -82,7 +86,7 @@ function loadProviders() {
   return require(stubDir);
 }
 
-const { codeActionProvider, hoverProvider } = loadProviders();
+const { codeActionProvider, colorProvider, hoverProvider } = loadProviders();
 
 function documentFor(text) {
   return {
@@ -211,5 +215,42 @@ describe("hover", () => {
       hoverProvider.provideHover(documentFor(text), text.indexOf("name")),
       undefined,
     );
+  });
+
+  it("ignores unresolved braces in the Markdown body", () => {
+    const body = `${text}\n\`\`\`js\nconst label = \`{user.name}\`;\n\`\`\`\n`;
+    const offset = body.indexOf("{user.name}") + 2;
+    assert.equal(
+      hoverProvider.provideHover(documentFor(body), offset),
+      undefined,
+    );
+  });
+
+  it("still resolves token references in the Markdown body", () => {
+    const body = `${text}\nUse {colors.primary} for actions.\n`;
+    const offset = body.lastIndexOf("{colors.primary}") + 2;
+    const { contents } = hoverProvider.provideHover(documentFor(body), offset);
+    assert.match(contents.value, /^\*\*colors\.primary\*\*/u);
+  });
+});
+
+describe("color picker", () => {
+  const red = { alpha: 1, blue: 0, green: 0, red: 1 };
+
+  function presentationFor(original) {
+    const [presentation] = colorProvider.provideColorPresentations(red, {
+      document: { getText: () => original },
+      range: null,
+    });
+    return presentation.label;
+  }
+
+  it("keeps lowercase hex values lowercase", () => {
+    assert.equal(presentationFor("#1a73e8"), "#ff0000");
+  });
+
+  it("uses uppercase for uppercase or digit-only values", () => {
+    assert.equal(presentationFor("#1A73E8"), "#FF0000");
+    assert.equal(presentationFor("#000000"), "#FF0000");
   });
 });

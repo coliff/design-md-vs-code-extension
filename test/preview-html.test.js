@@ -50,6 +50,13 @@ describe("buildPreviewHtml", () => {
     assert.doesNotMatch(html, /0 errors|0 warnings|0 info/u);
   });
 
+  it("leaves out the lint results when validation is disabled", () => {
+    const html = render('---\ncolors:\n  primary: "#1A73E8"\n---\n', {
+      showLintResults: false,
+    });
+    assert.doesNotMatch(html, /Lint results|Missing required/u);
+  });
+
   it("lists each problem with its severity and line", () => {
     const html = render('---\ncolors:\n  primary: "#1A73E8"\n---\n');
     assert.match(
