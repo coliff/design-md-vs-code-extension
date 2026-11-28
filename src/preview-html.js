@@ -28,6 +28,36 @@ const HEX_COLOR = /^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu;
 const PROSE_COLOR =
   /(?<![\w#&/-])(?:#(?:[\da-f]{8}|[\da-f]{6}|[\da-f]{3,4})(?![\w-])|(?:rgba?|hsla?)\((?:[\d\s.,/%+-]|deg|g?rad|turn|none){1,60}\))/giu;
 const SWATCH_TOKEN = "design_md_color";
+// A scheme such as `https:` or `data:`, a protocol-relative URL, or an anchor.
+const NON_RELATIVE_SRC = /^(?:[a-z][\w+.-]*:|\/\/|#)/iu;
+
+/*
+ * Replacing the webview's HTML on every edit reloads the page, so the script
+ * saves the scroll position in the webview state and restores it on load. The
+ * state also records the document, so the preview can be restored after a
+ * window reload.
+ */
+const PREVIEW_SCRIPT = `(() => {
+  const vscode = acquireVsCodeApi();
+  const state = { ...vscode.getState(), uri: document.body.dataset.uri };
+  const target = state.scrollY ?? 0;
+  vscode.setState(state);
+  window.scrollTo(0, target);
+  window.addEventListener("load", () => {
+    window.scrollTo(0, target);
+    let pending = false;
+    window.addEventListener("scroll", () => {
+      if (pending) {
+        return;
+      }
+      pending = true;
+      requestAnimationFrame(() => {
+        pending = false;
+        vscode.setState({ ...state, scrollY: window.scrollY });
+      });
+    }, { passive: true });
+  });
+})();`;
 
 function escapeHtml(value) {
   return String(value).replaceAll(/["&'<>]/gu, (char) => HTML_ESCAPES[char]);
@@ -482,9 +512,40 @@ markdown.renderer.rules[SWATCH_TOKEN] = (...args) => {
   return `<span class="prose-color"><span class="inline-swatch ${env.swatches.get(content)}" aria-hidden="true"></span>${escapeHtml(content)}</span>`;
 };
 
-function renderProse(text, rules) {
+/**
+ * Split a relative image `src` from the prose into a decoded path. Returns
+ * null for URLs with a scheme, protocol-relative URLs and anchors, which the
+ * webview loads as they are.
+ * @param {string} src The `src` attribute, as markdown-it percent-encodes it.
+ * @returns {{ path: string, rootRelative: boolean } | null}
+ */
+function relativeImagePath(src) {
+  if (!src || NON_RELATIVE_SRC.test(src)) {
+    return null;
+  }
+  const [encoded] = src.split(/[?#]/u);
+  try {
+    const path = decodeURIComponent(encoded);
+    return path ? { path, rootRelative: path.startsWith("/") } : null;
+  } catch {
+    return null;
+  }
+}
+
+const renderImage = markdown.renderer.rules.image;
+markdown.renderer.rules.image = (...args) => {
+  const [tokens, index, , env] = args;
+  const token = tokens[index];
+  const resolved = env.resolveImage?.(token.attrGet("src"));
+  if (resolved) {
+    token.attrSet("src", resolved);
+  }
+  return renderImage(...args);
+};
+
+function renderProse(text, rules, resolveImage) {
   const frontMatter = getFrontMatter(text);
-  const env = { swatches: new Map() };
+  const env = { resolveImage, swatches: new Map() };
   const prose = markdown.render(
     frontMatter ? text.slice(frontMatter.end) : text,
     env,
@@ -507,10 +568,15 @@ function renderProse(text, rules) {
  * @param {boolean} [options.contrastBadges] Show the on-white and on-black
  * contrast badges under each color. Defaults to false.
  * @param {string} options.css Stylesheet contents.
- * @param {string} options.nonce CSP nonce for the inline stylesheet.
+ * @param {string} options.nonce CSP nonce for the inline stylesheet and script.
  * @param {string} options.cspSource Webview CSP source.
  * @param {string} [options.lang] VS Code display language for the `lang`
  * attribute. Defaults to "en".
+ * @param {string} [options.documentUri] The previewed document's URI, kept in
+ * the webview state so the preview can be restored after a window reload.
+ * @param {(src: string) => string | undefined} [options.resolveImage] Maps an
+ * image `src` in the prose to a URL the webview can load. Returning undefined
+ * keeps the original `src`.
  * @returns {string}
  */
 function buildPreviewHtml({
@@ -523,17 +589,19 @@ function buildPreviewHtml({
   nonce,
   cspSource,
   lang = "en",
+  documentUri = "",
+  resolveImage,
 }) {
   const rules = [];
   const body = report
     ? renderReport(report, rules, { contrastBadges })
     : parseErrorHtml();
-  const prose = renderProse(text, rules);
+  const prose = renderProse(text, rules, resolveImage);
   return `<!DOCTYPE html>
 <html lang="${escapeHtml(lang)}">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; img-src ${cspSource} https: data:; font-src ${cspSource} https:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; img-src ${cspSource} https: data:; font-src ${cspSource} https:;">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${escapeHtml(localize("DESIGN.md Preview"))}</title>
 <style nonce="${nonce}">
@@ -541,14 +609,17 @@ ${css}
 ${rules.join("\n")}
 </style>
 </head>
-<body>
+<body data-uri="${escapeHtml(documentUri)}">
 <main>
 ${body}
 ${prose}
 ${showLintResults ? renderLintResults(problems, text) : ""}
 </main>
+<script nonce="${nonce}">
+${PREVIEW_SCRIPT}
+</script>
 </body>
 </html>`;
 }
 
-module.exports = { buildPreviewHtml, escapeHtml };
+module.exports = { buildPreviewHtml, escapeHtml, relativeImagePath };

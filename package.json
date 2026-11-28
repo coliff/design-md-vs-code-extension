@@ -145,7 +145,8 @@
   },
   "activationEvents": [
     "workspaceContains:**/DESIGN.md",
-    "onLanguage:markdown"
+    "onLanguage:markdown",
+    "onWebviewPanel:designMd.preview"
   ],
   "dependencies": {
     "@google/design.md": "0.4.0",
