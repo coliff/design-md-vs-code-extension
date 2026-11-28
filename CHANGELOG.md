@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.7 - 2026-11-28
+
+- **Fixed** the DESIGN.md preview jumping back to the top every time you edit the file. It now keeps its scroll position.
+- **Fixed** images with relative paths, such as `./logo.png`, not loading in the DESIGN.md preview. Paths starting with `/` resolve from the workspace folder.
+- **Fixed** DESIGN.md previews closing when the window reloads. They now reopen with the window.
+- **Fixed** DESIGN.md previews not updating after a settings change once the file's editor tab was closed.
+
 ## 1.0.6 - 2026-11-27
 
 - **Fixed** the color picker turning lowercase hex values such as `#1a73e8` into uppercase. It now keeps the case the value was written in.

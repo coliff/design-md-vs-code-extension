@@ -11,7 +11,11 @@ const {
   swatchDataUri,
   toHex,
 } = require("../src/format");
-const { buildPreviewHtml, escapeHtml } = require("../src/preview-html");
+const {
+  buildPreviewHtml,
+  escapeHtml,
+  relativeImagePath,
+} = require("../src/preview-html");
 
 function render(text, options = {}) {
   const { problems, report } = analyze(text);
@@ -106,14 +110,37 @@ describe("buildPreviewHtml", () => {
     );
   });
 
-  it("renders tokens, prose and a nonce-locked CSP", () => {
-    const html = render(template);
+  it("renders tokens, prose, the document URI and a nonce-locked CSP", () => {
+    const html = render(template, { documentUri: 'file:///a/"b"/DESIGN.md' });
+    assert.match(
+      html,
+      /<body data-uri="file:\/\/\/a\/&quot;b&quot;\/DESIGN\.md">/u,
+    );
     assert.match(html, /<h1>My Design System<\/h1>/u);
     assert.match(html, /\.color-0 \{ background: #1a73e8; color: #000; \}/iu);
     assert.match(html, /<h2>Do's and Don'ts<\/h2>/u);
     assert.match(html, /style-src 'nonce-test-nonce'/u);
-    assert.doesNotMatch(html, /<script/u);
+    assert.match(html, /script-src 'nonce-test-nonce'/u);
+    assert.equal(html.match(/<script/gu).length, 1);
+    assert.match(html, /<script nonce="test-nonce">/u);
     assert.doesNotMatch(html, /style="/u);
+  });
+
+  it("rewrites prose image sources with resolveImage", () => {
+    const text = `${template}\n![Logo](./logo.png)\n![Remote](https://example.com/a.png)\n`;
+    const html = render(text, {
+      resolveImage: (src) =>
+        relativeImagePath(src) ? `https://webview/${src}` : undefined,
+    });
+    assert.match(
+      html,
+      /<img src="https:\/\/webview\/\.\/logo\.png" alt="Logo">/u,
+    );
+    assert.match(
+      html,
+      /<img src="https:\/\/example\.com\/a\.png" alt="Remote">/u,
+    );
+    assert.match(render(text), /<img src="\.\/logo\.png" alt="Logo">/u);
   });
 
   it("adds swatches to colors in the prose", () => {
@@ -172,6 +199,33 @@ describe("buildPreviewHtml", () => {
       text: "# Hi",
     });
     assert.match(html, /Unable to parse/u);
+  });
+});
+
+describe("relativeImagePath", () => {
+  it("decodes relative and root-relative paths", () => {
+    assert.deepEqual(relativeImagePath("./img/my%20logo.png?v=2#x"), {
+      path: "./img/my logo.png",
+      rootRelative: false,
+    });
+    assert.deepEqual(relativeImagePath("/media/icon.png"), {
+      path: "/media/icon.png",
+      rootRelative: true,
+    });
+  });
+
+  it("leaves URLs with a scheme, protocol-relative URLs and anchors alone", () => {
+    for (const src of [
+      "https://example.com/a.png",
+      "data:image/png;base64,AA==",
+      "vscode-resource:/a.png",
+      "//cdn.example.com/a.png",
+      "#top",
+      "",
+      "%E0%A4%A",
+    ]) {
+      assert.equal(relativeImagePath(src), null, src);
+    }
   });
 });
 
