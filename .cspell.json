@@ -16,10 +16,11 @@
     "ZIZMOR"
   ],
   "allowCompoundWords": true,
-  "language": "en,en-US",
+  "language": "en,en-GB,en-US",
   "ignorePaths": [
     ".cspell.json",
     "l10n/bundle.l10n.*.json",
+    "examples/*",
     "package.nls.*.json"
   ],
   "useGitignore": true

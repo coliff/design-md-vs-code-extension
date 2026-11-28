@@ -1,19 +1,15 @@
 # Changelog
 
-## 1.0.7 - 2026-11-28
+## 1.0.6 - 2026-11-28
 
 - **Fixed** the DESIGN.md preview jumping back to the top every time you edit the file. It now keeps its scroll position.
 - **Fixed** images with relative paths, such as `./logo.png`, not loading in the DESIGN.md preview. Paths starting with `/` resolve from the workspace folder.
 - **Fixed** DESIGN.md previews closing when the window reloads. They now reopen with the window.
 - **Fixed** DESIGN.md previews not updating after a settings change once the file's editor tab was closed.
-
-## 1.0.6 - 2026-11-27
-
 - **Fixed** the color picker turning lowercase hex values such as `#1a73e8` into uppercase. It now keeps the case the value was written in.
 - **Fixed** hovers showing "Unresolved reference" for braces in the Markdown body that aren't tokens, such as `{user.name}` in a code sample. References in the body that resolve to a token still show their value.
 - **Fixed** the DESIGN.md preview listing lint results when validation is turned off with `designMd.validate.enable`.
 - **Fixed** the DESIGN.md preview reloading, and validation re-running, every time the file is saved even though nothing changed.
-- **Renamed** `CONTRIBUTNG.md` to `CONTRIBUTING.md` so GitHub links to it, and left it out of the packaged extension.
 
 ## 1.0.5 - 2026-11-25
 
