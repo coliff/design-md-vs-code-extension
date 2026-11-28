@@ -135,13 +135,7 @@
           "group": "navigation"
         }
       ]
-    },
-    "snippets": [
-      {
-        "language": "markdown",
-        "path": "./snippets/design-md.code-snippets"
-      }
-    ]
+    }
   },
   "activationEvents": [
     "workspaceContains:**/DESIGN.md",

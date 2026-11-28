@@ -2,6 +2,7 @@
 
 ## 1.0.6 - 2026-11-28
 
+- **Fixed** the `design-` snippets appearing in every Markdown file, such as README.md. They're now only offered in DESIGN.md files.
 - **Fixed** the DESIGN.md preview jumping back to the top every time you edit the file. It now keeps its scroll position.
 - **Fixed** images with relative paths, such as `./logo.png`, not loading in the DESIGN.md preview. Paths starting with `/` resolve from the workspace folder.
 - **Fixed** DESIGN.md previews closing when the window reloads. They now reopen with the window.
