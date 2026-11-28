@@ -19,7 +19,7 @@ A DESIGN.md file describes a design system: YAML front matter holds the design t
 - **Color swatches** and a color picker for every hex value in the front matter, including component properties such as `backgroundColor`.
 - **Live preview** with color swatches, typography samples, spacing and radius scales, component previews, the rendered prose and the lint results.
 - **Markdown preview** shows the front matter as a table at the top, with color swatches for hex values, CSS colors, and `{colors.*}` references.
-- **Snippets** for front matter, tokens, components and the standard sections (type `design-`).
+- **Snippets** for front matter, tokens, components and the standard sections (type `design-`). They're only offered in DESIGN.md files, not in other Markdown files.
 - **New DESIGN.md File** command that creates a spec-valid starter file.
 
 The extension activates for any markdown file named `DESIGN.md`.

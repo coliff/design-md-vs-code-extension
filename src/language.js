@@ -5,6 +5,7 @@ const { analyze } = require("./analyze");
 const { describeValue, parseHex, swatchDataUri, toHex } = require("./format");
 const { nameInsertionPoint } = require("./frontmatter-rules");
 const { findColorValues, isInFrontMatter, referenceAt } = require("./locate");
+const { SNIPPETS, typedSnippetPrefix } = require("./snippets");
 
 const SELECTOR = { language: "markdown", pattern: "**/DESIGN.md" };
 const OPEN_REFERENCE = /\{(?<partial>[\w.-]*)$/u;
@@ -49,6 +50,39 @@ const completionProvider = {
       }
       item.insertText = hasClosingBrace ? path : `${path}}`;
       item.range = replaceRange;
+      return item;
+    });
+  },
+};
+
+/*
+ * Snippets contributed in package.json would show up in every Markdown file,
+ * so they are offered through a provider scoped to DESIGN.md instead.
+ */
+const snippetProvider = {
+  provideCompletionItems(document, position) {
+    const linePrefix = document
+      .lineAt(position.line)
+      .text.slice(0, position.character);
+    const typed = typedSnippetPrefix(linePrefix);
+    if (!typed) {
+      return undefined;
+    }
+    const range = new vscode.Range(
+      position.with({ character: typed.start }),
+      position,
+    );
+    return SNIPPETS.map(({ body, description, prefix, preview }) => {
+      const item = new vscode.CompletionItem(
+        { description, label: prefix },
+        vscode.CompletionItemKind.Snippet,
+      );
+      item.documentation = new vscode.MarkdownString().appendCodeblock(
+        preview,
+        "markdown",
+      );
+      item.insertText = new vscode.SnippetString(body);
+      item.range = range;
       return item;
     });
   },
@@ -195,6 +229,7 @@ function registerLanguageFeatures(context) {
       "{",
       ".",
     ),
+    vscode.languages.registerCompletionItemProvider(SELECTOR, snippetProvider),
     vscode.languages.registerHoverProvider(SELECTOR, hoverProvider),
     vscode.languages.registerColorProvider(SELECTOR, colorProvider),
     vscode.languages.registerCodeActionsProvider(SELECTOR, codeActionProvider, {
